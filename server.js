@@ -1,3 +1,4 @@
+// @vercel-ignore
 // ═══════════════════════════════════════════════════════════
 //  FACILITE — Servidor local de desenvolvimento
 //  Roda a API /api/chat localmente com sua chave do .env
