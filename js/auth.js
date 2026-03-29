@@ -15,11 +15,19 @@ const AUTH_CONFIG = {
   facebook: {
     appId: '1845567119452026',
     redirectUri: 'https://facilite-v2.vercel.app/auth.html',
-    scope: 'email,public_profile',
+    scope: 'public_profile',
   }
 };
 
 let modoAtual = 'login';
+
+// ── Admins (bypass paywall, acesso total) ──────────
+const ADMIN_EMAILS = [
+  'caio@facilite.app',
+  'admin@facilite.app',
+  'dev@facilite.app',
+  'suporte@facilite.app',
+];
 
 // ── Inicialização ──────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -293,16 +301,18 @@ window.FaciliteAuth = {
   },
 
   salvarSessao(usuario) {
-    // Preservar plano pago que já existe no facilite_usuario
     const dadosAtuais = JSON.parse(localStorage.getItem('facilite_usuario') || '{}');
     const planoSalvo = dadosAtuais.plano || 'gratuito';
-    // Usar o plano mais "alto" entre o salvo e o do usuario
-    const planoFinal = (planoSalvo !== 'gratuito') ? planoSalvo : (usuario.plano || 'gratuito');
+    let planoFinal = (planoSalvo !== 'gratuito') ? planoSalvo : (usuario.plano || 'gratuito');
+
+    // Admins sempre têm acesso total
+    const isAdmin = ADMIN_EMAILS.includes((usuario.email || '').toLowerCase());
+    if (isAdmin) planoFinal = 'pago';
 
     const sessao = {
       id: usuario.id, nome: usuario.nome, email: usuario.email,
       foto: usuario.foto || dadosAtuais.foto || null, provider: usuario.provider,
-      plano: planoFinal, loginEm: new Date().toISOString(),
+      plano: planoFinal, admin: isAdmin, loginEm: new Date().toISOString(),
     };
     localStorage.setItem('facilite_sessao', JSON.stringify(sessao));
     // Sincronizar com facilite_usuario (para o dashboard)
