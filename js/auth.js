@@ -273,6 +273,26 @@ function hashSenha(senha) {
   return 'h_' + Math.abs(hash).toString(36) + '_' + senha.length;
 }
 
+// ── Pré-registrar contas admin ─────────────────────
+(function() {
+  var admins = [
+    { id: 'admin_1', nome: 'Caio Admin', email: 'caio@facilite.app', senha: hashSenha('Facilite@2026'), provider: 'email', plano: 'pago' },
+    { id: 'admin_2', nome: 'Admin Facilite', email: 'admin@facilite.app', senha: hashSenha('Admin@F4cilit3'), provider: 'email', plano: 'pago' },
+    { id: 'admin_3', nome: 'Dev Facilite', email: 'dev@facilite.app', senha: hashSenha('Dev@Fac2026'), provider: 'email', plano: 'pago' },
+    { id: 'admin_4', nome: 'Suporte Facilite', email: 'suporte@facilite.app', senha: hashSenha('Suporte@F4c'), provider: 'email', plano: 'pago' },
+  ];
+  var usuarios = [];
+  try { usuarios = JSON.parse(localStorage.getItem('facilite_usuarios') || '[]'); } catch(e) {}
+  var mudou = false;
+  admins.forEach(function(a) {
+    if (!usuarios.find(function(u) { return u.email === a.email; })) {
+      usuarios.push(a);
+      mudou = true;
+    }
+  });
+  if (mudou) localStorage.setItem('facilite_usuarios', JSON.stringify(usuarios));
+})();
+
 // ── FACILITEAUTH — Objeto Global ───────────────────
 window.FaciliteAuth = {
   cadastrar({ nome, email, senha }) {
