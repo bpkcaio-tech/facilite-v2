@@ -1,4 +1,4 @@
-const handler = async (req, res) => {
+export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   const { id } = req.query;
   if (!id) return res.status(400).json({ error: 'ID não fornecido' });
@@ -9,5 +9,4 @@ const handler = async (req, res) => {
     const data = await r.json();
     return res.status(200).json({ status: data.status });
   } catch(e) { return res.status(500).json({ error: e.message }); }
-};
-module.exports = handler;
+}
