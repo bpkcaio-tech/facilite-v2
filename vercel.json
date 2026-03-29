@@ -1,13 +1,17 @@
 {
   "version": 2,
-  "functions": {
-    "api/*.js": {
-      "runtime": "nodejs20.x"
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "**/*.{html,css,js,json,svg,png,jpg,ico}",
+      "use": "@vercel/static"
     }
-  },
+  ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/$1" }
+    { "handle": "filesystem" }
   ]
 }
