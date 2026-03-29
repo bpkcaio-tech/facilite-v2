@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST');
   res.setHeader('Content-Type', 'application/json');
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
   const token = process.env.MP_ACCESS_TOKEN;
   if (!token) {
-    return res.status(500).json({ error: 'Token do Mercado Pago não configurado' });
+    return res.status(500).json({ error: 'Token não configurado' });
   }
 
   const { valor, descricao, email, nome, userId } = req.body;
@@ -36,10 +36,7 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(400).json({ error: data.message || 'Erro Mercado Pago' });
-    }
+    if (!response.ok) return res.status(400).json({ error: data.message || 'Erro Mercado Pago' });
 
     return res.status(200).json({
       id: data.id,
@@ -47,7 +44,6 @@ export default async function handler(req, res) {
       qr_code: data.point_of_interaction?.transaction_data?.qr_code,
       qr_code_base64: data.point_of_interaction?.transaction_data?.qr_code_base64,
     });
-
   } catch(e) {
     return res.status(500).json({ error: e.message });
   }
