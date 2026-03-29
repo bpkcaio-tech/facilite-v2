@@ -317,6 +317,16 @@ button { cursor: pointer; font-family: var(--font-body); }
   flex-shrink: 0;
 }
 
+#banner-upgrade {
+  margin-left: var(--sidebar-width, 240px);
+}
+
+@media (max-width: 1024px) {
+  #banner-upgrade {
+    margin-left: 0;
+  }
+}
+
 .topbar__hamburger {
   display: none;
   width: 36px; height: 36px;
