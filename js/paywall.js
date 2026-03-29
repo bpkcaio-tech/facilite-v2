@@ -100,7 +100,7 @@ window.FacilitePaywall = {
       var sessao = {};
       try { sessao = JSON.parse(localStorage.getItem('facilite_sessao') || '{}'); } catch(e) {}
 
-      var res = await fetch('/api/criar-pagamento', {
+      var res = await fetch('https://facilite-api-production.up.railway.app/api/criar-pagamento', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -172,7 +172,7 @@ window.FacilitePaywall = {
     var self = this;
     this._polling = setInterval(async function() {
       try {
-        var res = await fetch('/api/verificar-pagamento?id=' + id);
+        var res = await fetch('https://facilite-api-production.up.railway.app/api/verificar-pagamento?id=' + id);
         var data = await res.json();
         if (data.status === 'approved') {
           self._pararPolling();
