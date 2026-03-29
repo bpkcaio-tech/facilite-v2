@@ -1,23 +1,16 @@
 export default async function handler(req, res) {
+  res.setHeader('Content-Type', 'application/json');
   const { id } = req.query;
-
   if (!id) return res.status(400).json({ error: 'ID não fornecido' });
-
-  if (!process.env.MP_ACCESS_TOKEN) {
-    return res.status(500).json({ error: 'MP_ACCESS_TOKEN não configurado' });
-  }
-
+  const token = process.env.MP_ACCESS_TOKEN;
+  if (!token) return res.status(500).json({ error: 'Token não configurado' });
   try {
-    const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}`,
-      }
+    const r = await fetch('https://api.mercadopago.com/v1/payments/' + id, {
+      headers: { 'Authorization': 'Bearer ' + token }
     });
-
-    const data = await response.json();
+    const data = await r.json();
     return res.status(200).json({ status: data.status });
-
-  } catch (e) {
-    return res.status(500).json({ error: 'Erro ao verificar: ' + e.message });
+  } catch(e) {
+    return res.status(500).json({ error: e.message });
   }
 }
