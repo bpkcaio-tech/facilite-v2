@@ -8,13 +8,13 @@ const DASHBOARD_URL = 'dashboard.html';
 // ── Configuração OAuth ─────────────────────────────
 const AUTH_CONFIG = {
   google: {
-    clientId: 'SEU_GOOGLE_CLIENT_ID',
-    redirectUri: window.location.origin + '/auth.html',
+    clientId: '331761194331-qgdncm6lsbevhfl8suej7656bkrdcol4.apps.googleusercontent.com',
+    redirectUri: 'https://facilite-v2.vercel.app/auth.html',
     scope: 'openid email profile',
   },
   facebook: {
-    appId: 'SEU_FACEBOOK_APP_ID',
-    redirectUri: window.location.origin + '/auth.html',
+    appId: '1845567119452026',
+    redirectUri: 'https://facilite-v2.vercel.app/auth.html',
     scope: 'email,public_profile',
   }
 };
@@ -133,32 +133,25 @@ function submitCadastro(e) {
 
 // ── LOGIN COM GOOGLE ───────────────────────────────
 function loginGoogle() {
-  if (AUTH_CONFIG.google.clientId === 'SEU_GOOGLE_CLIENT_ID') {
-    const usuario = { id: 'google_' + Date.now(), nome: 'Usuário Google', email: 'usuario@gmail.com', foto: null, provider: 'google', plano: 'gratuito' };
-    FaciliteAuth.salvarSessao(usuario);
-    mostrarMensagem('Login com Google realizado! Redirecionando...', 'sucesso');
-    setTimeout(() => { window.location.href = DASHBOARD_URL; }, 800);
-    return;
-  }
   const params = new URLSearchParams({
-    client_id: AUTH_CONFIG.google.clientId, redirect_uri: AUTH_CONFIG.google.redirectUri,
-    response_type: 'token', scope: AUTH_CONFIG.google.scope, state: 'google_' + Date.now(),
+    client_id:     AUTH_CONFIG.google.clientId,
+    redirect_uri:  AUTH_CONFIG.google.redirectUri,
+    response_type: 'token',
+    scope:         AUTH_CONFIG.google.scope,
+    prompt:        'select_account',
+    state:         'google_' + Date.now(),
   });
   window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
 }
 
 // ── LOGIN COM FACEBOOK ─────────────────────────────
 function loginFacebook() {
-  if (AUTH_CONFIG.facebook.appId === 'SEU_FACEBOOK_APP_ID') {
-    const usuario = { id: 'facebook_' + Date.now(), nome: 'Usuário Facebook', email: 'usuario@facebook.com', foto: null, provider: 'facebook', plano: 'gratuito' };
-    FaciliteAuth.salvarSessao(usuario);
-    mostrarMensagem('Login com Facebook realizado! Redirecionando...', 'sucesso');
-    setTimeout(() => { window.location.href = DASHBOARD_URL; }, 800);
-    return;
-  }
   const params = new URLSearchParams({
-    client_id: AUTH_CONFIG.facebook.appId, redirect_uri: AUTH_CONFIG.facebook.redirectUri,
-    response_type: 'token', scope: AUTH_CONFIG.facebook.scope, state: 'facebook_' + Date.now(),
+    client_id:     AUTH_CONFIG.facebook.appId,
+    redirect_uri:  AUTH_CONFIG.facebook.redirectUri,
+    response_type: 'token',
+    scope:         AUTH_CONFIG.facebook.scope,
+    state:         'facebook_' + Date.now(),
   });
   window.location.href = 'https://www.facebook.com/v18.0/dialog/oauth?' + params;
 }

@@ -12,7 +12,7 @@
   <script src="js/auth-guard.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="dashboard.css" />
-  <link rel="stylesheet" href="chatbot.css" />
+  <!-- <link rel="stylesheet" href="chatbot.css" /> -->
 </head>
 <body>
 <div class="app-layout">
@@ -322,75 +322,7 @@
   </div><!-- /main-wrapper -->
 </div><!-- /app-layout -->
 
-<!-- ══════════════ CHATBOT FAB ══════════════ -->
-<div id="chatbot-fab" class="chatbot-fab" onclick="toggleChatbot()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-  </svg>
-  <div class="chatbot-fab-badge" id="chatbot-badge">1</div>
-</div>
-
-<!-- ══════════════ CHATBOT PANEL ══════════════ -->
-<div id="chatbot-panel" class="chatbot-panel chatbot-hidden">
-
-  <div class="chatbot-header">
-    <div class="chatbot-header-info">
-      <div class="chatbot-avatar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M12 2L15.5 9H22L16.5 13L18.5 20L12 16L5.5 20L7.5 13L2 9H8.5L12 2Z" fill="currentColor" stroke="none"/>
-        </svg>
-      </div>
-      <div>
-        <div class="chatbot-name">Assistente Financeiro</div>
-        <div class="chatbot-status">
-          <span class="status-dot"></span> Online
-        </div>
-      </div>
-    </div>
-    <div class="chatbot-header-actions">
-      <button class="chatbot-btn-icon" onclick="clearChat()" title="Limpar conversa">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-        </svg>
-      </button>
-      <button class="chatbot-btn-icon" onclick="toggleChatbot()" title="Fechar">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <div class="chatbot-quick-actions">
-    <button class="quick-chip" onclick="sendQuickMessage('Qual meu saldo atual?')">💰 Saldo</button>
-    <button class="quick-chip" onclick="sendQuickMessage('Como estão meus gastos este mês?')">📊 Gastos</button>
-    <button class="quick-chip" onclick="sendQuickMessage('Quais faturas vencem em breve?')">💳 Faturas</button>
-    <button class="quick-chip" onclick="sendQuickMessage('Me dê dicas para economizar')">💡 Dicas</button>
-    <button class="quick-chip" onclick="sendQuickMessage('Quanto tenho disponível para gastar?')">🎯 Limite</button>
-  </div>
-
-  <div class="chatbot-messages" id="chatbot-messages"></div>
-
-  <div class="chatbot-input-area">
-    <div class="chatbot-input-wrapper">
-      <textarea
-        id="chatbot-input"
-        class="chatbot-input"
-        placeholder="Pergunte ou registre um gasto..."
-        rows="1"
-        onkeydown="handleInputKeydown(event)"
-        oninput="autoResizeInput(this)"
-      ></textarea>
-      <button class="chatbot-send-btn" id="chatbot-send" type="button" onclick="sendMessage()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-        </svg>
-      </button>
-    </div>
-    <div class="chatbot-input-hint">Ex: "Gastei R$80 no mercado" · "Qual meu saldo?" · "Analise meus gastos"</div>
-  </div>
-
-</div>
+<!-- Chatbot desativado temporariamente -->
 
 <!-- Modal edição de receita -->
 <div id="modal-receita" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:99999;align-items:center;justify-content:center">
@@ -439,8 +371,8 @@
 <script src="js/notif-panel.js"></script>
 <script src="js/virada-mes.js"></script>
 
-<!-- Chatbot -->
-<script src="chatbot.js"></script>
+<!-- Chatbot desativado -->
+<!-- <script src="chatbot.js"></script> -->
 
 <!-- Paywall overlay (plano gratuito) -->
 <div id="paywall-overlay" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(7,14,10,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center">
