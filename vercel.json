@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "functions": {
-    "api/criar-pagamento.js": { "memory": 128 },
-    "api/verificar-pagamento.js": { "memory": 128 }
-  }
-}
