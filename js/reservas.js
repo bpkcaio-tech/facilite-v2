@@ -309,6 +309,10 @@ const ReservasPage = {
   },
 
   salvar() {
+    if (window.FacilitePlano && !FacilitePlano.ehPago()) {
+      FacilitePaywall.abrir('Para criar reservas, assine o Facilite Premium.');
+      return;
+    }
     const nome  = document.getElementById('reserva-nome')?.value?.trim();
     const meta  = parseValorBRL(document.getElementById('reserva-meta')?.value);
     const atual = parseValorBRL(document.getElementById('reserva-atual')?.value);
@@ -401,6 +405,10 @@ const ReservasPage = {
   },
 
   confirmarValor() {
+    if (window.FacilitePlano && !FacilitePlano.ehPago()) {
+      FacilitePaywall.abrir('Para guardar dinheiro em reservas, assine o Facilite Premium.');
+      return;
+    }
     const valor = parseValorBRL(document.getElementById('rv-valor')?.value);
     if (!valor || valor <= 0) { FaciliteNotify.warning('Informe um valor.'); return; }
 

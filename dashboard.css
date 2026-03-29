@@ -48,6 +48,81 @@
   --topbar-height:     64px;
 }
 
+/* ── MODO CLARO ──────────────────────────────────── */
+[data-theme="light"] {
+  --bg-root:        #F5F7FA;
+  --bg-sidebar:     #FFFFFF;
+  --bg-card:        #FFFFFF;
+  --bg-card-glass:  rgba(255,255,255,0.85);
+  --bg-card-hover:  #F0F2F5;
+  --bg-input:       #F5F7FA;
+
+  --text-primary:   #111827;
+  --text-secondary: #6B7280;
+  --text-muted:     #9CA3AF;
+
+  --border-card:    rgba(0,0,0,0.08);
+  --border-active:  rgba(34,197,94,0.5);
+
+  --shadow-card:    0 2px 12px rgba(0,0,0,0.06);
+  --shadow-glow:    0 0 16px rgba(34,197,94,0.08);
+  --shadow-glow-strong: 0 0 24px rgba(34,197,94,0.12);
+}
+
+[data-theme="light"] body,
+[data-theme="light"] .sidebar,
+[data-theme="light"] .topbar { background: var(--bg-root); }
+
+[data-theme="light"] .sidebar { border-right: 1px solid var(--border-card); }
+
+[data-theme="light"] .card,
+[data-theme="light"] .kpi-card,
+[data-theme="light"] .cc-section,
+[data-theme="light"] .subs-card,
+[data-theme="light"] .bills-card {
+  background: var(--bg-card);
+  border-color: var(--border-card);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="light"] .nav-item { color: var(--text-secondary); }
+[data-theme="light"] .nav-item--active { color: var(--green-primary); background: rgba(34,197,94,0.08); }
+
+[data-theme="light"] .form-input,
+[data-theme="light"] .auth-input {
+  background: var(--bg-input);
+  border-color: rgba(0,0,0,0.1);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .modal-box {
+  background: #FFFFFF;
+  border-color: rgba(0,0,0,0.1);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.15);
+}
+
+[data-theme="light"] .modal-title,
+[data-theme="light"] .section-title { color: var(--text-primary); }
+
+[data-theme="light"] .topbar__avatar { background: rgba(34,197,94,0.12); color: var(--green-primary); }
+
+[data-theme="light"] .gauge-track { background: rgba(0,0,0,0.06); }
+
+[data-theme="light"] .toggle-btn { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); color: var(--text-secondary); }
+
+[data-theme="light"] .datepicker { background: #FFFFFF; border-color: rgba(0,0,0,0.1); box-shadow: 0 12px 36px rgba(0,0,0,0.1); }
+[data-theme="light"] .dp-day { color: var(--text-primary); }
+[data-theme="light"] .dp-day:hover { background: rgba(34,197,94,0.08); }
+[data-theme="light"] .dp-day--other { color: #D1D5DB; }
+
+[data-theme="light"] .context-menu { background: #FFFFFF; border-color: rgba(0,0,0,0.1); }
+[data-theme="light"] .context-menu-item { color: var(--text-primary); }
+
+[data-theme="light"] .reserva-card { background: #FFFFFF; border-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .conta-card { background: #FFFFFF; border-color: rgba(0,0,0,0.06); }
+
+[data-theme="light"] .sidebar__user { border-top-color: rgba(0,0,0,0.06); }
+
 /* ── RESET & BASE ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -220,7 +295,8 @@ button { cursor: pointer; font-family: var(--font-body); }
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   min-width: 0;
 }
 
@@ -340,10 +416,13 @@ button { cursor: pointer; font-family: var(--font-body); }
 /* ═══════════════════════════════════ DASHBOARD CONTENT */
 .dashboard {
   padding: 24px;
+  padding-bottom: 80px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
+  flex: 1;
+  min-height: 0; /* permite shrink para scroll funcionar */
 }
 
 /* ── BASE CARD ── */

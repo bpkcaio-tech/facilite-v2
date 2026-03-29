@@ -65,13 +65,27 @@
     </div>
   </div>
 
-  <!-- ── Preferências ──────────────────────────────── -->
+  <!-- ── Configurações ──────────────────────────────── -->
   <div class="card" style="padding:24px;margin-bottom:20px">
-    <h3 class="modal-title" style="margin-bottom:18px;font-size:15px">Preferências</h3>
+    <h3 class="modal-title" style="margin-bottom:18px;font-size:15px">Configurações</h3>
 
-    <label class="form-label">Receita mensal (R$)</label>
-    <input id="perfil-receita" type="text" inputmode="decimal" placeholder="0,00" class="form-input" style="margin-bottom:12px">
+    <!-- Tema -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:12px 0;border-bottom:1px solid var(--border-card)">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary)">Aparência</div>
+        <div style="font-size:12px;color:var(--text-secondary)">Escolha o tema da plataforma</div>
+      </div>
+      <div style="display:flex;gap:6px" id="tema-toggle">
+        <button type="button" onclick="PerfilPage.setTema('dark')" id="btn-tema-dark" class="toggle-btn toggle-btn--small" style="flex:none;gap:4px;display:flex;align-items:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Escuro
+        </button>
+        <button type="button" onclick="PerfilPage.setTema('light')" id="btn-tema-light" class="toggle-btn toggle-btn--small" style="flex:none;gap:4px;display:flex;align-items:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> Claro
+        </button>
+      </div>
+    </div>
 
+    <!-- Dia pagamento -->
     <label class="form-label">Dia preferido para pagamentos</label>
     <input id="perfil-dia-pgto" type="number" min="1" max="31" class="form-input" style="margin-bottom:14px">
 
@@ -80,10 +94,15 @@
     </button>
   </div>
 
-  <!-- ── Planos e Taxas ────────────────────────────── -->
+  <!-- ── Plano ────────────────────────────────────── -->
   <div class="card" style="padding:24px;margin-bottom:20px">
-    <h3 class="modal-title" style="margin-bottom:18px;font-size:15px">Planos e Taxas</h3>
-    <div id="perfil-planos" style="display:flex;flex-direction:column;gap:12px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <h3 class="modal-title" style="margin:0 0 4px;font-size:15px">Seu plano</h3>
+        <div style="font-size:13px;color:#6B7280" id="perfil-plano-info">Gratuito</div>
+      </div>
+      <button onclick="FacilitePaywall.abrir()" id="perfil-btn-upgrade" class="btn-primary" style="font-size:13px;padding:8px 20px">Fazer upgrade</button>
+    </div>
   </div>
 
   <!-- ── Ações rápidas ─────────────────────────────── -->

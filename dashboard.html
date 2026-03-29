@@ -94,10 +94,7 @@
       </div>
 
       <div class="topbar__controls">
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
-          <span id="data-topbar" style="font-size:13px;font-weight:600;color:#F0FDF4"></span>
-          <span id="hora-topbar" style="font-size:11px;color:#6B7280"></span>
-        </div>
+        <span id="data-topbar" style="font-size:13px;font-weight:600;color:#F0FDF4"></span>
         <button class="topbar__icon-btn" aria-label="Notificações" onclick="NotifPanel.toggle()" id="btn-notificacoes">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -266,7 +263,7 @@
         <div class="cc-section card">
           <div class="section-header">
             <h2 class="section-title">Minhas Reservas</h2>
-            <button class="btn-primary-sm" onclick="if(window.ReservasPage){ReservasPage.abrirModal()}else{FaciliteRouter.navigate('reservas')}">+ Nova reserva</button>
+            <button class="btn-primary-sm" onclick="FaciliteRouter.navigate('reservas');setTimeout(function(){if(window.ReservasPage)ReservasPage.abrirModal()},300)">+ Nova reserva</button>
           </div>
           <div id="dash-reservas-list"><!-- preenchido por charts-update.js --></div>
           <div style="text-align:center;padding:8px 0 4px">
@@ -340,12 +337,12 @@
         style="width:100%;box-sizing:border-box;background:#070E0A;border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#F0FDF4;font-family:'Sora',sans-serif;font-size:20px;font-weight:700;padding:12px 12px 12px 36px;outline:none;transition:border-color 0.2s"
         onfocus="this.style.borderColor='rgba(34,197,94,0.5)'"
         onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
-        onkeydown="if(event.key==='Enter') salvarReceita()"
+        onkeydown="if(event.key==='Enter') FacilitePlano.verificar(salvarReceita,'Para editar receita, assine o Premium.')"
       >
     </div>
     <div style="display:flex;gap:10px">
       <button onclick="fecharModalReceita()" style="flex:1;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#6B7280;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">Cancelar</button>
-      <button onclick="salvarReceita()" style="flex:1;padding:11px;background:#22C55E;border:none;border-radius:10px;color:#000;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#16A34A';this.style.color='#fff'" onmouseout="this.style.background='#22C55E';this.style.color='#000'">💾 Salvar</button>
+      <button onclick="FacilitePlano.verificar(salvarReceita,'Para editar receita, assine o Premium.')" style="flex:1;padding:11px;background:#22C55E;border:none;border-radius:10px;color:#000;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#16A34A';this.style.color='#fff'" onmouseout="this.style.background='#22C55E';this.style.color='#000'">💾 Salvar</button>
     </div>
   </div>
 </div>
@@ -353,6 +350,8 @@
 <!-- Core modules -->
 <script src="js/storage.js"></script>
 <script src="js/state.js"></script>
+<script src="js/plano.js"></script>
+<script src="js/paywall.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/router.js"></script>
 
@@ -374,52 +373,74 @@
 <!-- Chatbot desativado -->
 <!-- <script src="chatbot.js"></script> -->
 
-<!-- Paywall overlay (plano gratuito) -->
-<div id="paywall-overlay" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(7,14,10,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center">
-  <div style="max-width:480px;text-align:center;padding:40px 32px">
-    <div style="font-size:56px;margin-bottom:16px">🔒</div>
-    <h2 style="font-family:'Sora',sans-serif;font-size:24px;font-weight:700;color:#F0FDF4;margin:0 0 10px">Assine para acessar o Dashboard</h2>
-    <p style="font-size:15px;color:#6B7280;line-height:1.6;margin:0 0 32px">
-      Para usar o Facilite e gerenciar suas finanças, escolha um plano abaixo. Cancele quando quiser.
-    </p>
-
-    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px">
-      <!-- Pessoal -->
-      <a href="checkout.html?plano=pessoal" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);border-radius:14px;text-decoration:none;transition:all 0.15s" onmouseover="this.style.borderColor='rgba(34,197,94,0.5)';this.style.background='rgba(34,197,94,0.1)'" onmouseout="this.style.borderColor='rgba(34,197,94,0.25)';this.style.background='rgba(34,197,94,0.06)'">
-        <div style="text-align:left">
-          <div style="font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:#22C55E">Pessoal</div>
-          <div style="font-size:12px;color:#6B7280;margin-top:2px">Relatórios, exportação, sem limites</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-family:'Sora',sans-serif;font-size:20px;font-weight:800;color:#F0FDF4">R$ 19,90</div>
-          <div style="font-size:11px;color:#4B5563">/mês</div>
-        </div>
-      </a>
-
-      <!-- Corporativo -->
-      <a href="checkout.html?plano=corporativo" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:14px;text-decoration:none;transition:all 0.15s" onmouseover="this.style.borderColor='rgba(139,92,246,0.45)';this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.borderColor='rgba(139,92,246,0.2)';this.style.background='rgba(139,92,246,0.06)'">
-        <div style="text-align:left">
-          <div style="font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:#8B5CF6">Corporativo</div>
-          <div style="font-size:12px;color:#6B7280;margin-top:2px">Tudo do Pessoal + 5 dispositivos + suporte</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-family:'Sora',sans-serif;font-size:20px;font-weight:800;color:#F0FDF4">R$ 49,90</div>
-          <div style="font-size:11px;color:#4B5563">/mês</div>
-        </div>
-      </a>
-    </div>
-
-    <button onclick="FaciliteAuth?FaciliteAuth.logout():localStorage.removeItem('facilite_sessao')||location.replace('auth.html')" style="background:none;border:none;color:#4B5563;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:color 0.15s" onmouseover="this.style.color='#9CA3AF'" onmouseout="this.style.color='#4B5563'">
-      Sair da conta
-    </button>
-  </div>
-</div>
-
+<!-- Verificação de plano — roda DEPOIS de todos os scripts -->
 <script>
-  // Mostrar paywall se plano gratuito
-  if (window._facilitePaywall) {
-    document.getElementById('paywall-overlay').style.display = 'flex';
+(function() {
+  // Verificar direto no localStorage — não depende de nenhum módulo
+  function ehPago() {
+    try {
+      var s = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
+      if (s.plano === 'pago' || s.plano === 'pessoal' || s.plano === 'corporativo') {
+        if (s.planoExpira && new Date(s.planoExpira) < new Date()) return false;
+        return true;
+      }
+      return false;
+    } catch(e) { return false; }
   }
+
+  if (ehPago()) return; // usuário pago — nada a fazer
+
+  // === USUÁRIO GRATUITO ===
+
+  // 1) Banner fixo no topo
+  var banner = document.createElement('div');
+  banner.id = 'banner-upgrade';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9998';
+  banner.innerHTML = '<div style="background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.06));border-bottom:1px solid rgba(34,197,94,0.25);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;font-family:DM Sans,sans-serif;font-size:13px;flex-wrap:wrap;gap:8px">'
+    + '<span style="color:#F0FDF4">🔒 Plano gratuito — <strong style="color:#22C55E">assine para usar todas as funcionalidades</strong></span>'
+    + '<div style="display:flex;gap:8px;align-items:center">'
+    + '<button onclick="FacilitePaywall.abrir()" style="padding:8px 20px;background:#22C55E;border:none;border-radius:8px;color:#000;font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer">Assinar R$ 29,90/mês</button>'
+    + '<button onclick="this.parentElement.parentElement.parentElement.style.display=\'none\'" style="background:none;border:none;color:#6B7280;cursor:pointer;font-size:18px;padding:4px;line-height:1">&times;</button>'
+    + '</div></div>';
+  document.body.appendChild(banner);
+
+  // 2) Aviso dentro da área principal
+  function injetarAviso() {
+    if (document.querySelector('.upgrade-notice')) return;
+    var main = document.querySelector('.dashboard');
+    if (!main) return;
+    var aviso = document.createElement('div');
+    aviso.className = 'upgrade-notice';
+    aviso.style.cssText = 'padding:0 0 4px';
+    aviso.innerHTML = '<div style="background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.03));border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+      + '<span style="font-size:28px">🔒</span>'
+      + '<div><div style="font-family:Sora,sans-serif;font-size:14px;font-weight:700;color:var(--text-primary,#F0FDF4)">Modo visualização</div>'
+      + '<div style="font-size:13px;color:var(--text-secondary,#6B7280)">Explore a plataforma livremente. Para salvar dados, assine o Premium.</div></div></div>'
+      + '<button onclick="FacilitePaywall.abrir()" style="padding:10px 24px;background:#22C55E;border:none;border-radius:10px;color:#000;font-family:DM Sans,sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">Assinar Premium</button>'
+      + '</div>';
+    main.insertBefore(aviso, main.firstChild);
+  }
+
+  // Injetar agora e a cada troca de aba
+  injetarAviso();
+  // Observer para detectar quando o conteúdo da main muda (troca de aba)
+  var main = document.querySelector('.dashboard');
+  if (main) {
+    var obs = new MutationObserver(function() {
+      setTimeout(injetarAviso, 50);
+    });
+    obs.observe(main, { childList: true });
+  }
+
+  // 3) Escutar ativação do plano para limpar tudo
+  window.addEventListener('facilite:plano-ativado', function() {
+    var b = document.getElementById('banner-upgrade');
+    if (b) b.remove();
+    document.querySelectorAll('.upgrade-notice').forEach(function(el) { el.remove(); });
+    if (obs) obs.disconnect();
+  });
+})();
 </script>
 
 </body>

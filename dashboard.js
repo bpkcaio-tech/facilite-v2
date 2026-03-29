@@ -10,10 +10,6 @@ function atualizarDataTopbar() {
   const texto = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
   const elData = document.getElementById('data-topbar');
   if (elData) elData.textContent = texto;
-
-  const hora = agora.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-  const elHora = document.getElementById('hora-topbar');
-  if (elHora) elHora.textContent = hora;
 }
 
 atualizarDataTopbar();

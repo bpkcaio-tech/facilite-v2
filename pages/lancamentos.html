@@ -21,6 +21,21 @@
     </button>
   </div>
 
+  <!-- Receita mensal fixa -->
+  <div class="card" style="padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(34,197,94,0.1);display:flex;align-items:center;justify-content:center;font-size:16px">💰</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Receita mensal fixa</div>
+        <div style="font-size:11px;color:var(--text-secondary)" id="receita-fixa-desc">Se repete todo mês automaticamente</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-family:'Sora',sans-serif;font-size:18px;font-weight:700;color:#22C55E" id="receita-fixa-valor">R$ 0,00</span>
+      <button onclick="LancamentosPage.editarReceitaFixa()" class="toggle-btn toggle-btn--small" style="flex:none">Alterar</button>
+    </div>
+  </div>
+
   <!-- Tabs + Busca -->
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px">
     <div class="lanc-tabs" id="lanc-tabs">
@@ -197,6 +212,24 @@
     <div style="display:flex;gap:10px;margin-top:20px">
       <button type="button" onclick="LancamentosPage.fecharModal()" class="btn-modal-cancel">Cancelar</button>
       <button type="button" onclick="LancamentosPage.salvar()" class="btn-modal-save">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ Modal receita fixa ══════════ -->
+<div id="modal-receita-fixa" class="modal-overlay">
+  <div class="modal-box" style="width:360px">
+    <h3 class="modal-title">Receita mensal fixa</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Este valor se repete automaticamente todo mês. Altere quando receber aumento ou mudar de emprego.</p>
+    <label class="form-label">Valor (R$)</label>
+    <input id="receita-fixa-input" type="text" inputmode="decimal" placeholder="5.000,00" class="form-input" style="margin-bottom:14px">
+    <label class="form-label">Descrição</label>
+    <input id="receita-fixa-nome" type="text" value="Salário" placeholder="Salário, freelance..." class="form-input" style="margin-bottom:14px">
+    <label class="form-label">Dia do recebimento</label>
+    <input id="receita-fixa-dia" type="number" min="1" max="31" value="5" class="form-input" style="margin-bottom:20px">
+    <div style="display:flex;gap:10px">
+      <button type="button" onclick="document.getElementById('modal-receita-fixa').style.display='none'" class="btn-modal-cancel">Cancelar</button>
+      <button type="button" onclick="LancamentosPage.salvarReceitaFixa()" class="btn-modal-save">Salvar</button>
     </div>
   </div>
 </div>

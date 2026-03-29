@@ -3,49 +3,31 @@
 //  Foto, senha, planos, logout, sidebar sync
 // ═══════════════════════════════════════════════════
 
-const PLANOS = [
-  {
-    id: 'gratuito', nome: 'Gratuito', icone: '🆓', preco: null,
-    features: ['1 usuário', 'Funcionalidades básicas', 'Até 3 contas bancárias'],
-  },
-  {
-    id: 'pessoal', nome: 'Pessoal', icone: '⭐', preco: 19.90,
-    features: ['Relatórios avançados', 'Exportação PDF/CSV', 'Sem limite de contas', 'Notificações premium'],
-  },
-  {
-    id: 'corporativo', nome: 'Corporativo', icone: '🏢', preco: 49.90,
-    features: ['Tudo do Pessoal', 'Até 5 dispositivos', 'Conta corporativa', 'Suporte prioritário'],
-  },
-];
-
 const PerfilPage = {
 
   init() {
     const usuario = FaciliteStorage.get('usuario');
-    const receita = FaciliteStorage.get('receita');
     const prefs   = FaciliteStorage.get('preferencias');
 
-    // Preencher campos
     const elNome    = document.getElementById('perfil-nome');
     const elEmail   = document.getElementById('perfil-email');
-    const elReceita = document.getElementById('perfil-receita');
     const elDia     = document.getElementById('perfil-dia-pgto');
     const elDisplay = document.getElementById('perfil-nome-display');
     const elPlano   = document.getElementById('perfil-plano-display');
 
     if (elNome) elNome.value = usuario?.nome || '';
     if (elEmail) elEmail.value = usuario?.email || '';
-    if (elReceita) elReceita.value = receita?.mensal || '';
     if (elDia) elDia.value = prefs?.diaPreferidoPagamento || 5;
     if (elDisplay) elDisplay.textContent = usuario?.nome || 'Usuário';
     if (elPlano) {
-      const nomes = { gratuito: 'Plano Gratuito', pessoal: 'Plano Pessoal', corporativo: 'Plano Corporativo' };
-      elPlano.textContent = nomes[usuario?.plano] || 'Plano Gratuito';
+      const pago = window.FacilitePlano && FacilitePlano.ehPago();
+      elPlano.textContent = pago ? 'Plano Premium' : 'Plano Gratuito';
     }
 
     this._renderAvatar(usuario);
-    this._renderPlanos(usuario?.plano || 'gratuito');
+    this._renderPlanoInfo();
     this._esconderSenha();
+    this._initTema();
   },
 
   // ── Avatar / Foto ──────────────────────────────────
@@ -164,61 +146,52 @@ const PerfilPage = {
 
   // ── Preferências ───────────────────────────────────
   salvarPrefs() {
-    const receita = parseValorBRL(document.getElementById('perfil-receita')?.value);
-    const dia     = parseInt(document.getElementById('perfil-dia-pgto')?.value) || 5;
-
-    if (receita && receita > 0) {
-      FaciliteStorage.update('receita', { mensal: receita });
-    }
+    const dia = parseInt(document.getElementById('perfil-dia-pgto')?.value) || 5;
     FaciliteStorage.update('preferencias', { diaPreferidoPagamento: dia });
     FaciliteState.refresh();
     FaciliteNotify.success('Preferências salvas!');
   },
 
-  // ── Planos ─────────────────────────────────────────
-  _renderPlanos(planoAtual) {
-    const el = document.getElementById('perfil-planos');
-    if (!el) return;
-
-    el.innerHTML = PLANOS.map(p => {
-      const ativo = p.id === planoAtual;
-      const corBorda = ativo ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.04)';
-      const bgBadge = ativo ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.03)';
-
-      return `
-        <div style="border:1px solid ${corBorda};border-radius:14px;padding:18px;background:${ativo ? 'rgba(34,197,94,0.03)' : 'transparent'};transition:border-color 0.15s">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="font-size:22px">${p.icone}</span>
-              <div>
-                <span style="font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:#F0FDF4">${p.nome.toUpperCase()}</span>
-                ${p.preco ? `<span style="font-size:13px;color:#6B7280;margin-left:8px">R$ ${p.preco.toFixed(2).replace('.', ',')}/mês</span>` : ''}
-              </div>
-            </div>
-            ${ativo
-              ? '<span style="background:rgba(34,197,94,0.12);color:#22C55E;font-size:11px;padding:4px 12px;border-radius:6px;font-weight:700;font-family:\'DM Sans\',sans-serif">ATUAL</span>'
-              : `<button type="button" onclick="PerfilPage.selecionarPlano('${p.id}')" style="background:#22C55E;color:#000;border:none;border-radius:8px;padding:7px 16px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#16A34A';this.style.color='#fff'" onmouseout="this.style.background='#22C55E';this.style.color='#000'">ASSINAR</button>`
-            }
-          </div>
-          <ul style="margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 16px">
-            ${p.features.map(f => `<li style="font-size:12px;color:#6B7280;display:flex;align-items:center;gap:4px"><span style="color:${ativo ? '#22C55E' : '#374151'}">•</span>${f}</li>`).join('')}
-          </ul>
-        </div>`;
-    }).join('');
+  // ── Tema claro/escuro ──────────────────────────────
+  _initTema() {
+    const tema = localStorage.getItem('facilite_tema') || 'dark';
+    this._marcarTema(tema);
   },
 
-  selecionarPlano(planoId) {
-    if (planoId === 'gratuito') {
-      FaciliteStorage.update('usuario', { plano: 'gratuito', planoVencimento: null });
-      this._renderPlanos('gratuito');
-      const elPlano = document.getElementById('perfil-plano-display');
-      if (elPlano) elPlano.textContent = 'Plano Gratuito';
-      this._atualizarSidebar(FaciliteStorage.get('usuario'));
-      FaciliteNotify.success('Plano alterado para Gratuito.');
-      return;
+  setTema(tema) {
+    localStorage.setItem('facilite_tema', tema);
+    document.documentElement.setAttribute('data-theme', tema);
+    this._marcarTema(tema);
+  },
+
+  _marcarTema(tema) {
+    const btnDark = document.getElementById('btn-tema-dark');
+    const btnLight = document.getElementById('btn-tema-light');
+    if (btnDark) btnDark.classList.toggle('toggle-btn--active', tema === 'dark');
+    if (btnLight) btnLight.classList.toggle('toggle-btn--active', tema === 'light');
+  },
+
+  // ── Info do plano ──────────────────────────────────
+  _renderPlanoInfo() {
+    const el = document.getElementById('perfil-plano-info');
+    const btn = document.getElementById('perfil-btn-upgrade');
+    if (!el) return;
+
+    const pago = window.FacilitePlano && FacilitePlano.ehPago();
+
+    if (pago) {
+      try {
+        const sessao = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
+        const expira = sessao.planoExpira ? new Date(sessao.planoExpira).toLocaleDateString('pt-BR') : '';
+        el.innerHTML = 'Premium ativo' + (expira ? ' — renova em ' + expira : '');
+        el.style.color = '#22C55E';
+      } catch(e) { el.textContent = 'Premium ativo'; }
+      if (btn) btn.style.display = 'none';
+    } else {
+      el.textContent = 'Gratuito — funcionalidades limitadas';
+      el.style.color = '#6B7280';
+      if (btn) btn.style.display = '';
     }
-    // Redirecionar para checkout com Pix
-    window.location.href = `checkout.html?plano=${planoId}`;
   },
 
   // ── Logout ─────────────────────────────────────────
@@ -298,6 +271,10 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch(e) {}
   PerfilPage._atualizarSidebar(usuario);
   PerfilPage._atualizarTopbar(usuario);
+
+  // Aplicar tema salvo
+  const tema = localStorage.getItem('facilite_tema') || 'dark';
+  document.documentElement.setAttribute('data-theme', tema);
 });
 
 window.PerfilPage = PerfilPage;

@@ -2,8 +2,16 @@
   "version": 2,
   "builds": [
     {
-      "src": "**/*",
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "**/*.{html,css,js,json,svg,png,jpg,ico}",
       "use": "@vercel/static"
     }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "handle": "filesystem" }
   ]
 }

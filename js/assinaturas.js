@@ -146,6 +146,10 @@ const AssinaturasPage = {
   },
 
   salvar() {
+    if (window.FacilitePlano && !FacilitePlano.ehPago()) {
+      FacilitePaywall.abrir('Para adicionar assinaturas, assine o Facilite Premium.');
+      return;
+    }
     const valor = parseValorBRL(document.getElementById('sub-valor')?.value);
     const dia   = parseInt(document.getElementById('sub-dia')?.value) || 5;
 

@@ -24,7 +24,72 @@ const LancamentosPage = {
     this.render();
     this._preencherCartoes();
     this._setDataHoje();
+    this._renderReceitaFixa();
     document.addEventListener('click', () => this._fecharContextMenu());
+  },
+
+  // ── Receita mensal fixa ───────────────────────────
+  _renderReceitaFixa() {
+    const receita = FaciliteStorage.get('receita');
+    const el = document.getElementById('receita-fixa-valor');
+    if (el) el.textContent = fmtBRL(receita?.mensal || 0);
+    const desc = document.getElementById('receita-fixa-desc');
+    if (desc) {
+      const nome = receita?.nomeReceita || 'Salário';
+      const dia = receita?.diaRecebimento || 5;
+      desc.textContent = nome + ' — dia ' + dia + ' de cada mês';
+    }
+  },
+
+  editarReceitaFixa() {
+    const receita = FaciliteStorage.get('receita');
+    const modal = document.getElementById('modal-receita-fixa');
+    if (!modal) return;
+    document.getElementById('receita-fixa-input').value = receita?.mensal || '';
+    document.getElementById('receita-fixa-nome').value = receita?.nomeReceita || 'Salário';
+    document.getElementById('receita-fixa-dia').value = receita?.diaRecebimento || 5;
+    modal.style.display = 'flex';
+    modal.onclick = function(e) { if (e.target === modal) modal.style.display = 'none'; };
+    setTimeout(function() { document.getElementById('receita-fixa-input')?.focus(); }, 100);
+  },
+
+  salvarReceitaFixa() {
+    if (window.FacilitePlano && !FacilitePlano.ehPago()) {
+      FacilitePaywall.abrir('Para configurar sua receita, assine o Facilite Premium.');
+      return;
+    }
+    var valor = parseValorBRL(document.getElementById('receita-fixa-input')?.value);
+    var nome = document.getElementById('receita-fixa-nome')?.value?.trim() || 'Salário';
+    var dia = parseInt(document.getElementById('receita-fixa-dia')?.value) || 5;
+
+    if (!valor || valor <= 0) { FaciliteNotify.warning('Informe um valor válido.'); return; }
+
+    FaciliteStorage.set('receita', { mensal: valor, nomeReceita: nome, diaRecebimento: dia });
+
+    // Criar/atualizar lançamento recorrente de receita no mês atual
+    var mes = FaciliteState.mesAtual;
+    var ano = FaciliteState.anoAtual;
+    var lancamentos = FaciliteStorage.get('lancamentos') || [];
+    var existente = lancamentos.find(function(l) { return l.mes === mes && l.ano === ano && l.valor > 0 && l.recorrente && l.descricao === nome; });
+
+    if (existente) {
+      existente.valor = valor;
+      existente.diaVencimento = dia;
+      FaciliteStorage.set('lancamentos', lancamentos);
+    } else {
+      var dataStr = ano + '-' + String(mes).padStart(2, '0') + '-' + String(Math.min(dia, 28)).padStart(2, '0');
+      FaciliteStorage.addLancamento({
+        descricao: nome, valor: valor, categoria: 'Receita', tipo: 'fixo',
+        data: dataStr, formaPagamento: 'pix', status: 'pago',
+        recorrente: true, diaVencimento: dia,
+      });
+    }
+
+    document.getElementById('modal-receita-fixa').style.display = 'none';
+    this._renderReceitaFixa();
+    this.render();
+    FaciliteState.refresh();
+    FaciliteNotify.success('Receita fixa atualizada!');
   },
 
   // ── Navegação de mês ───────────────────────────────
@@ -546,6 +611,10 @@ const LancamentosPage = {
 
   // ── Salvar ─────────────────────────────────────────
   salvar() {
+    if (window.FacilitePlano && !FacilitePlano.ehPago()) {
+      FacilitePaywall.abrir('Para adicionar lançamentos, assine o Facilite Premium.');
+      return;
+    }
     const descricao  = document.getElementById('lanc-descricao')?.value?.trim();
     const valorRaw   = parseValorBRL(document.getElementById('lanc-valor')?.value);
     const categoria  = document.getElementById('lanc-categoria')?.value;

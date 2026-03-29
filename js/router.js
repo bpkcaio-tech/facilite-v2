@@ -55,6 +55,7 @@ const FaciliteRouter = {
     const overlay = document.querySelector('.sidebar-overlay');
     if (sidebar) sidebar.classList.remove('sidebar--open');
     if (overlay) { overlay.classList.remove('sidebar-overlay--visible'); overlay.classList.remove('active'); }
+    document.body.style.overflow = '';
 
     // Atualizar nav ativa (perfil não tem nav-item, limpa todos)
     this.navItems.forEach(item => {
@@ -95,6 +96,9 @@ const FaciliteRouter = {
         }
         this.mainEl.innerHTML = html;
         this.currentPage = page;
+        // Scroll para o topo ao trocar de aba
+        this.mainEl.scrollTop = 0;
+        window.scrollTo(0, 0);
         FaciliteState.emit('page-loaded', { page });
       } catch (e) {
         console.error('[Router] Erro ao carregar', page, ':', e);

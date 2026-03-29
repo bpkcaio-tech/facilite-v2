@@ -965,9 +965,9 @@ button { cursor: pointer; font-family: var(--font-body); }
 
 .pricing__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  align-items: start;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  align-items: stretch;
 }
 
 .pricing-card {

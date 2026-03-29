@@ -89,6 +89,10 @@ const ContasPage = {
   },
 
   salvar() {
+    if (window.FacilitePlano && !FacilitePlano.ehPago()) {
+      FacilitePaywall.abrir('Para adicionar contas, assine o Facilite Premium.');
+      return;
+    }
     const nome  = document.getElementById('conta-nome')?.value?.trim();
     const banco = document.getElementById('conta-banco')?.value?.trim();
     const saldo = parseValorBRL(document.getElementById('conta-saldo')?.value);
