@@ -6,7 +6,15 @@
       "use": "@vercel/node"
     },
     {
-      "src": "!api/**",
+      "src": "*.{html,css,js,json}",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "js/**/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "pages/**/*.html",
       "use": "@vercel/static"
     }
   ],
