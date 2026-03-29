@@ -1,19 +1,9 @@
 {
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" },
-    { "source": "/(.*)",       "destination": "/$1" }
-  ],
-  "headers": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
+      "src": "**/*",
+      "use": "@vercel/static"
     }
   ]
-}
-{
-  "buildCommand": null,
-  "outputDirectory": ".",
-  "framework": null
 }
