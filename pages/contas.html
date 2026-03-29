@@ -1,0 +1,69 @@
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  FACILITE — CONTAS BANCÁRIAS                      -->
+<!-- ═══════════════════════════════════════════════════ -->
+
+<section class="page-contas">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="font-size:12px;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Saldo total</div>
+      <div style="font-size:28px;font-weight:700;color:#22C55E;font-family:'Sora',sans-serif" id="contas-saldo-total">R$ 0,00</div>
+    </div>
+    <button onclick="ContasPage.abrirModal()" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nova conta
+    </button>
+  </div>
+
+  <div id="lista-contas" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
+
+  <div id="empty-contas" style="display:none;text-align:center;padding:60px 20px">
+    <span style="font-size:48px;display:block;margin-bottom:12px">🏦</span>
+    <p style="color:#6B7280;font-size:14px">Nenhuma conta cadastrada. Adicione sua primeira conta.</p>
+  </div>
+
+</section>
+
+<!-- Modal conta -->
+<div id="modal-conta" class="modal-overlay">
+  <div class="modal-box" style="width:360px">
+    <h3 class="modal-title" id="modal-conta-title">Nova Conta</h3>
+
+    <label class="form-label">Nome da conta</label>
+    <input id="conta-nome" type="text" placeholder="Ex: Conta Nubank" class="form-input" style="margin-bottom:12px">
+
+    <label class="form-label">Banco</label>
+    <input id="conta-banco" type="text" placeholder="Ex: Nubank, Inter, Santander..." class="form-input" style="margin-bottom:12px">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label class="form-label">Saldo atual (R$)</label>
+        <input id="conta-saldo" type="text" inputmode="decimal" placeholder="0,00" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Tipo</label>
+        <select id="conta-tipo" class="form-input">
+          <option value="manual">Manual</option>
+          <option value="conectada">Conectada</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="form-label">Cor</label>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap" id="conta-cores">
+      <button type="button" onclick="ContasPage.setCor('#EC0000')" class="cor-btn" style="background:#EC0000"></button>
+      <button type="button" onclick="ContasPage.setCor('#005CA9')" class="cor-btn" style="background:#005CA9"></button>
+      <button type="button" onclick="ContasPage.setCor('#FF7A00')" class="cor-btn" style="background:#FF7A00"></button>
+      <button type="button" onclick="ContasPage.setCor('#820AD1')" class="cor-btn" style="background:#820AD1"></button>
+      <button type="button" onclick="ContasPage.setCor('#22C55E')" class="cor-btn" style="background:#22C55E"></button>
+      <button type="button" onclick="ContasPage.setCor('#3B82F6')" class="cor-btn" style="background:#3B82F6"></button>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button type="button" onclick="ContasPage.fecharModal()" class="btn-modal-cancel">Cancelar</button>
+      <button type="button" onclick="ContasPage.salvar()" class="btn-modal-save">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos movidos para dashboard.css -->

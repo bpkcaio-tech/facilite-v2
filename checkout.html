@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facilite — Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#070E0A;font-family:'DM Sans',sans-serif;padding:20px}
+
+    .checkout{width:100%;max-width:440px}
+
+    .checkout__back{display:inline-flex;align-items:center;gap:6px;color:#6B7280;font-size:13px;text-decoration:none;margin-bottom:20px;transition:color 0.15s}
+    .checkout__back:hover{color:#22C55E}
+
+    .checkout__card{background:#0F1A12;border:1px solid rgba(34,197,94,0.12);border-radius:20px;padding:32px;box-shadow:0 24px 64px rgba(0,0,0,0.4),0 0 48px rgba(34,197,94,0.04)}
+
+    .checkout__plan-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:10px;padding:8px 16px;margin-bottom:20px}
+    .checkout__plan-name{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:#22C55E}
+    .checkout__plan-price{font-size:13px;color:#6B7280}
+
+    .checkout__title{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;color:#F0FDF4;margin-bottom:6px}
+    .checkout__sub{font-size:13px;color:#6B7280;margin-bottom:24px}
+
+    .checkout__method{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);border-radius:12px;margin-bottom:20px}
+    .checkout__method-dot{width:18px;height:18px;border-radius:50%;border:2px solid #22C55E;display:flex;align-items:center;justify-content:center}
+    .checkout__method-dot::after{content:'';width:10px;height:10px;border-radius:50%;background:#22C55E}
+    .checkout__method-label{font-size:14px;font-weight:600;color:#F0FDF4}
+    .checkout__method-desc{font-size:11px;color:#6B7280}
+
+    .checkout__summary{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:16px;margin-bottom:24px}
+    .checkout__row{display:flex;justify-content:space-between;font-size:13px;color:#6B7280;padding:4px 0}
+    .checkout__row--total{border-top:1px solid rgba(255,255,255,0.06);margin-top:8px;padding-top:10px;font-size:15px;font-weight:700;color:#F0FDF4}
+    .checkout__row--total span:last-child{color:#22C55E}
+
+    .btn-checkout{width:100%;padding:14px;background:#22C55E;border:none;border-radius:12px;color:#000;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s,color 0.15s}
+    .btn-checkout:hover{background:#16A34A;color:#fff}
+    .btn-checkout:disabled{opacity:0.5;cursor:not-allowed}
+
+    /* Pix QR */
+    .pix-area{display:none;text-align:center;margin-top:20px}
+    .pix-qr{width:200px;height:200px;background:#fff;border-radius:16px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;padding:12px}
+    .pix-qr svg{width:100%;height:100%}
+    .pix-code{background:#070E0A;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;font-size:11px;color:#9CA3AF;word-break:break-all;text-align:left;cursor:pointer;transition:border-color 0.15s;display:flex;flex-direction:column;gap:10px}
+    .pix-code:hover{border-color:rgba(34,197,94,0.3)}
+    .pix-copy-btn{width:100%;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);border-radius:8px;color:#22C55E;font-size:13px;font-weight:700;padding:8px;cursor:pointer;transition:background 0.15s;font-family:'DM Sans',sans-serif}
+    .pix-copy-btn:hover{background:rgba(34,197,94,0.22)}
+    .pix-timer{font-size:13px;color:#F59E0B;margin-top:12px}
+    .pix-status{margin-top:16px;padding:14px;border-radius:12px;font-size:14px;font-weight:600;display:none}
+    .pix-status--success{display:block;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);color:#22C55E}
+  </style>
+</head>
+<body>
+  <div class="checkout">
+    <a href="dashboard.html" class="checkout__back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Voltar ao dashboard
+    </a>
+
+    <div class="checkout__card">
+      <div class="checkout__plan-badge">
+        <span id="ck-icone" style="font-size:20px">⭐</span>
+        <div>
+          <div class="checkout__plan-name" id="ck-nome">PESSOAL</div>
+          <div class="checkout__plan-price" id="ck-preco">R$ 19,90/mês</div>
+        </div>
+      </div>
+
+      <h2 class="checkout__title">Finalizar assinatura</h2>
+      <p class="checkout__sub">Pagamento via Pix — acesso imediato após confirmação</p>
+
+      <!-- Método -->
+      <div class="checkout__method">
+        <div class="checkout__method-dot"></div>
+        <div>
+          <div class="checkout__method-label">Pix</div>
+          <div class="checkout__method-desc">Pagamento instantâneo</div>
+        </div>
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%2322C55E'%3E%3Cpath d='M385.1 254.5l98.6-98.6c8-8 8-20.9 0-28.9l-42.7-42.7c-8-8-20.9-8-28.9 0l-98.6 98.6c-11-11-28.8-11-39.8 0l-98.6-98.6c-8-8-20.9-8-28.9 0L103.5 127c-8 8-8 20.9 0 28.9l98.6 98.6c-11 11-11 28.8 0 39.8l-98.6 98.6c-8 8-8 20.9 0 28.9l42.7 42.7c8 8 20.9 8 28.9 0l98.6-98.6c11 11 28.8 11 39.8 0l98.6 98.6c8 8 20.9 8 28.9 0l42.7-42.7c8-8 8-20.9 0-28.9l-98.6-98.6c11-11 11-28.8 0-39.8z'/%3E%3C/svg%3E" alt="Pix" style="width:28px;height:28px;margin-left:auto">
+      </div>
+
+      <!-- Resumo -->
+      <div class="checkout__summary">
+        <div class="checkout__row">
+          <span>Plano <span id="ck-plan-txt">Pessoal</span></span>
+          <span id="ck-val">R$ 19,90</span>
+        </div>
+        <div class="checkout__row">
+          <span>Período</span>
+          <span>Mensal</span>
+        </div>
+        <div class="checkout__row checkout__row--total">
+          <span>Total</span>
+          <span id="ck-total">R$ 19,90</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn-checkout" id="btn-pagar" onclick="gerarPix()">
+        Gerar código Pix
+      </button>
+
+      <!-- Área do Pix (aparece após gerar) -->
+      <div class="pix-area" id="pix-area">
+        <div style="font-family:'Sora',sans-serif;font-size:14px;font-weight:600;color:#F0FDF4;margin-bottom:12px">Escaneie o QR Code</div>
+
+        <div class="pix-qr" id="pix-qr">
+          <!-- QR code placeholder gerado por JS -->
+        </div>
+
+        <div style="font-size:12px;color:#6B7280;margin-bottom:12px">ou copie o código Pix:</div>
+        <div class="pix-code" id="pix-code" onclick="copiarPix()">
+          <span id="pix-code-text"></span>
+          <button class="pix-copy-btn">Copiar</button>
+        </div>
+
+        <div class="pix-timer" id="pix-timer">Expira em <strong>15:00</strong></div>
+
+        <div class="pix-status pix-status--success" id="pix-success">
+          ✅ Pagamento confirmado! Redirecionando...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Ler plano da URL ──────────────────────────────
+    const params = new URLSearchParams(window.location.search);
+    const planoId = params.get('plano') || 'pessoal';
+
+    const PLANOS = {
+      pessoal:     { nome: 'PESSOAL',     icone: '⭐', preco: 19.90, features: 'Relatórios avançados, Exportação PDF/CSV, Sem limite de contas, Notificações premium' },
+      corporativo: { nome: 'CORPORATIVO', icone: '🏢', preco: 49.90, features: 'Tudo do Pessoal, Até 5 dispositivos, Conta corporativa, Suporte prioritário' },
+    };
+
+    const plano = PLANOS[planoId] || PLANOS.pessoal;
+
+    // Preencher dados do plano
+    document.getElementById('ck-icone').textContent = plano.icone;
+    document.getElementById('ck-nome').textContent = plano.nome;
+    document.getElementById('ck-preco').textContent = `R$ ${plano.preco.toFixed(2).replace('.', ',')}/mês`;
+    document.getElementById('ck-plan-txt').textContent = plano.nome.charAt(0) + plano.nome.slice(1).toLowerCase();
+    document.getElementById('ck-val').textContent = `R$ ${plano.preco.toFixed(2).replace('.', ',')}`;
+    document.getElementById('ck-total').textContent = `R$ ${plano.preco.toFixed(2).replace('.', ',')}`;
+
+    // ── Gerar Pix simulado ────────────────────────────
+    let timerInterval;
+
+    function gerarPix() {
+      const btn = document.getElementById('btn-pagar');
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+
+      setTimeout(() => {
+        btn.style.display = 'none';
+        document.getElementById('pix-area').style.display = 'block';
+
+        // Código Pix simulado
+        const pixCode = '00020126580014br.gov.bcb.pix0136facilite-' + planoId + '-' + Date.now().toString(36) + '5204000053039865802BR5913FACILITE SAAS6008SAOPAULO62070503***6304';
+        document.getElementById('pix-code-text').textContent = pixCode;
+
+        // QR Code placeholder (padrão visual)
+        const qr = document.getElementById('pix-qr');
+        qr.innerHTML = gerarQRPlaceholder();
+
+        // Timer de 15 minutos
+        let segsRestantes = 900;
+        const timerEl = document.getElementById('pix-timer');
+        timerInterval = setInterval(() => {
+          segsRestantes--;
+          const min = Math.floor(segsRestantes / 60);
+          const seg = segsRestantes % 60;
+          timerEl.innerHTML = `Expira em <strong>${String(min).padStart(2, '0')}:${String(seg).padStart(2, '0')}</strong>`;
+          if (segsRestantes <= 0) {
+            clearInterval(timerInterval);
+            timerEl.innerHTML = '<span style="color:#EF4444">Código expirado. Gere um novo.</span>';
+          }
+        }, 1000);
+
+        // Simular confirmação após 8 segundos (em produção: webhook do gateway)
+        setTimeout(confirmarPagamento, 8000);
+      }, 1500);
+    }
+
+    function confirmarPagamento() {
+      clearInterval(timerInterval);
+      document.getElementById('pix-timer').style.display = 'none';
+      document.getElementById('pix-success').style.display = 'block';
+
+      // Atualizar plano no localStorage (facilite_usuario + facilite_sessao)
+      try {
+        const usuario = JSON.parse(localStorage.getItem('facilite_usuario') || '{}');
+        usuario.plano = planoId;
+        usuario.planoVencimento = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+        localStorage.setItem('facilite_usuario', JSON.stringify(usuario));
+
+        // Atualizar sessão (auth-guard verifica aqui)
+        const sessao = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
+        sessao.plano = planoId;
+        localStorage.setItem('facilite_sessao', JSON.stringify(sessao));
+      } catch(e) { console.error(e); }
+
+      // Redirecionar após 3 segundos
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 3000);
+    }
+
+    function copiarPix() {
+      const code = document.getElementById('pix-code-text').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector('.pix-copy-btn');
+        btn.textContent = 'Copiado!';
+        setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
+      });
+    }
+
+    // QR Code visual placeholder (pattern grid)
+    function gerarQRPlaceholder() {
+      const size = 21;
+      let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">`;
+      // Gerar padrão pseudo-aleatório baseado no plano
+      const seed = planoId.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          // Position detection patterns (corners)
+          const inCorner = (x < 7 && y < 7) || (x >= size - 7 && y < 7) || (x < 7 && y >= size - 7);
+          const onBorder = inCorner && (x === 0 || x === 6 || y === 0 || y === 6 || (x >= size - 7 && (x === size - 7 || x === size - 1)) || (y >= size - 7 && (y === size - 7 || y === size - 1)));
+          const inInner = inCorner && x >= 2 && x <= 4 && y >= 2 && y <= 4;
+          const inInner2 = inCorner && (x >= size - 5 && x <= size - 3 && y >= 2 && y <= 4);
+          const inInner3 = inCorner && (x >= 2 && x <= 4 && y >= size - 5 && y <= size - 3);
+
+          let fill = false;
+          if (onBorder || inInner || inInner2 || inInner3) fill = true;
+          else if (!inCorner) fill = ((x * 7 + y * 13 + seed) % 3) !== 0;
+
+          if (fill) svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="#000"/>`;
+        }
+      }
+      svg += '</svg>';
+      return svg;
+    }
+  </script>
+</body>
+</html>

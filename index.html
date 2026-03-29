@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Facilite — Sua Planilha Financeira</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════ NAV ═══ -->
+  <header class="nav">
+    <div class="nav__inner">
+      <a href="#" class="nav__logo">
+        <div class="nav__logo-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 2L13 8H19L14 12L16 18L10 14L4 18L6 12L1 8H7L10 2Z" fill="#22C55E"/>
+          </svg>
+        </div>
+        <span>Facilite</span>
+      </a>
+
+      <nav class="nav__links">
+        <a href="#recursos">Recursos</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#precos">Preços</a>
+      </nav>
+
+      <div class="nav__actions">
+        <a href="auth.html" class="btn-ghost">Entrar</a>
+        <a href="auth.html" class="btn-primary">Começar grátis</a>
+      </div>
+
+      <button class="nav__hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <!-- Mobile menu -->
+    <div class="nav__mobile" id="mobileMenu">
+      <a href="#recursos">Recursos</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#precos">Preços</a>
+      <a href="auth.html" style="color:var(--green-mid)">Entrar</a>
+      <a href="auth.html" class="btn-primary" style="text-align:center;margin-top:4px">Começar grátis</a>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════ HERO ═══ -->
+  <section class="hero">
+    <div class="hero__inner">
+      <div class="hero__content">
+        <span class="badge">NOVO: Relatórios com IA ✦</span>
+        <h1 class="hero__title">
+          Suas finanças,<br/>
+          <span class="hero__title--green">simplificadas</span><br/>
+          de vez.
+        </h1>
+        <p class="hero__sub">
+          Controle gastos, visualize seu limite real, acompanhe assinaturas e gere relatórios do mês — tudo em um lugar só.
+        </p>
+        <div class="hero__cta">
+          <a href="auth.html" class="btn-primary btn--lg">Criar conta grátis</a>
+          <a href="#como-funciona" class="btn-secondary btn--lg">Ver como funciona →</a>
+        </div>
+        <p class="hero__note">✓ Sem cartão de crédito &nbsp;·&nbsp; ✓ Configuração em 2 min &nbsp;·&nbsp; ✓ Cancele quando quiser</p>
+      </div>
+
+      <div class="hero__mockup">
+        <div class="browser-mock">
+          <div class="browser-mock__bar">
+            <span class="dot dot--red"></span>
+            <span class="dot dot--yellow"></span>
+            <span class="dot dot--green"></span>
+            <div class="browser-mock__url">facilite.app/dashboard</div>
+          </div>
+          <div class="browser-mock__body">
+            <!-- Header row -->
+            <div class="mock-header">
+              <div>
+                <div class="mock-label">Saldo disponível</div>
+                <div class="mock-value">R$ 3.240,00</div>
+              </div>
+              <div class="mock-badge-good">Saudável ✓</div>
+            </div>
+
+            <!-- Cards row -->
+            <div class="mock-cards">
+              <div class="mock-card mock-card--yellow">
+                <div class="mock-card__label">Renda mensal</div>
+                <div class="mock-card__val">R$ 6.500</div>
+              </div>
+              <div class="mock-card mock-card--dark">
+                <div class="mock-card__label">Gasto total</div>
+                <div class="mock-card__val">R$ 3.260</div>
+              </div>
+              <div class="mock-card mock-card--sage">
+                <div class="mock-card__label">Assinaturas</div>
+                <div class="mock-card__val">R$ 312</div>
+              </div>
+            </div>
+
+            <!-- Bar chart -->
+            <div class="mock-chart">
+              <div class="mock-chart__title">Gastos por categoria</div>
+              <div class="mock-bars">
+                <div class="mock-bar-row">
+                  <span>Moradia</span>
+                  <div class="mock-bar-wrap"><div class="mock-bar" style="width:72%"></div></div>
+                  <span>R$1.800</span>
+                </div>
+                <div class="mock-bar-row">
+                  <span>Alimentação</span>
+                  <div class="mock-bar-wrap"><div class="mock-bar mock-bar--sage" style="width:48%"></div></div>
+                  <span>R$960</span>
+                </div>
+                <div class="mock-bar-row">
+                  <span>Transporte</span>
+                  <div class="mock-bar-wrap"><div class="mock-bar mock-bar--yellow" style="width:24%"></div></div>
+                  <span>R$500</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transactions -->
+            <div class="mock-txs">
+              <div class="mock-tx">
+                <div class="mock-tx__icon">🛒</div>
+                <div class="mock-tx__info">
+                  <div class="mock-tx__name">Supermercado</div>
+                  <div class="mock-tx__date">Hoje, 09:42</div>
+                </div>
+                <div class="mock-tx__val mock-tx__val--out">- R$ 187,40</div>
+              </div>
+              <div class="mock-tx">
+                <div class="mock-tx__icon">💼</div>
+                <div class="mock-tx__info">
+                  <div class="mock-tx__name">Salário</div>
+                  <div class="mock-tx__date">01/03, 08:00</div>
+                </div>
+                <div class="mock-tx__val mock-tx__val--in">+ R$ 6.500,00</div>
+              </div>
+              <div class="mock-tx">
+                <div class="mock-tx__icon">📺</div>
+                <div class="mock-tx__info">
+                  <div class="mock-tx__name">Netflix</div>
+                  <div class="mock-tx__date">05/03</div>
+                </div>
+                <div class="mock-tx__val mock-tx__val--out">- R$ 44,90</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ MARQUEE ═══ -->
+  <div class="marquee-bar">
+    <div class="marquee-track">
+      <span>CONTROLE TOTAL</span><span class="marquee-dot">✦</span>
+      <span>RELATÓRIOS MENSAIS</span><span class="marquee-dot">✦</span>
+      <span>LIMITE INTELIGENTE</span><span class="marquee-dot">✦</span>
+      <span>GESTÃO DE ASSINATURAS</span><span class="marquee-dot">✦</span>
+      <span>DASHBOARD EM TEMPO REAL</span><span class="marquee-dot">✦</span>
+      <span>SEM PLANILHA MANUAL</span><span class="marquee-dot">✦</span>
+      <span>CONTROLE TOTAL</span><span class="marquee-dot">✦</span>
+      <span>RELATÓRIOS MENSAIS</span><span class="marquee-dot">✦</span>
+      <span>LIMITE INTELIGENTE</span><span class="marquee-dot">✦</span>
+      <span>GESTÃO DE ASSINATURAS</span><span class="marquee-dot">✦</span>
+      <span>DASHBOARD EM TEMPO REAL</span><span class="marquee-dot">✦</span>
+      <span>SEM PLANILHA MANUAL</span><span class="marquee-dot">✦</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ PROBLEMA vs SOLUÇÃO ═══ -->
+  <section class="pvs" id="recursos">
+    <div class="container">
+      <div class="pvs__grid">
+        <div class="pvs__card pvs__card--problem">
+          <div class="pvs__tag pvs__tag--bad">❌ Sem o Facilite</div>
+          <ul class="pvs__list">
+            <li>Planilha do Excel bagunçada e desatualizada</li>
+            <li>Não sabe quanto pode gastar no mês</li>
+            <li>Perde o controle das assinaturas no cartão</li>
+            <li>Sem visão clara da saúde financeira</li>
+            <li>Relatórios manuais que tomam horas</li>
+            <li>Gastos passam do limite sem perceber</li>
+          </ul>
+        </div>
+        <div class="pvs__card pvs__card--solution">
+          <div class="pvs__tag pvs__tag--good">✓ Com o Facilite</div>
+          <ul class="pvs__list">
+            <li>Dashboard limpo com tudo em um lugar</li>
+            <li>Limite de gastos calculado automaticamente</li>
+            <li>Todas as assinaturas mapeadas e controladas</li>
+            <li>Saúde financeira visível em tempo real</li>
+            <li>Relatório do mês gerado com 1 clique</li>
+            <li>Alertas antes de estourar o limite</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ FEATURES ═══ -->
+  <section class="features">
+    <div class="container">
+      <div class="features__header">
+        <h2 class="section-heading">Tudo que você precisa para <span class="text-green">organizar</span> seu dinheiro</h2>
+        <p>Sem complexidade. Sem curva de aprendizado. Só resultado.</p>
+      </div>
+      <div class="features__grid">
+
+        <div class="feature-card">
+          <div class="feature-card__icon">📊</div>
+          <h3>Dashboard Financeiro</h3>
+          <p>Veja sua situação financeira completa em um único painel: renda, gastos, saldo e saúde financeira.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">🎯</div>
+          <h3>Limite Inteligente</h3>
+          <p>Calculamos seu limite de gastos com base na sua renda e nos seus compromissos fixos automaticamente.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">📋</div>
+          <h3>Lançamentos</h3>
+          <p>Registre receitas e despesas com categorias, datas e descrições. Filtros rápidos por mês e categoria.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">💳</div>
+          <h3>Assinaturas no Cartão</h3>
+          <p>Mapeie todos os serviços recorrentes do seu cartão: Netflix, Spotify, academia, plano de saúde e mais.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">📄</div>
+          <h3>Relatório do Mês</h3>
+          <p>Gere relatórios completos com um clique. Veja onde gastou mais, compare com meses anteriores.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">🔔</div>
+          <h3>Alertas de Limite</h3>
+          <p>Receba avisos antes de estourar seu orçamento. Saiba com antecedência quando os gastos estão altos.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ COMO FUNCIONA ═══ -->
+  <section class="how" id="como-funciona">
+    <div class="container">
+      <div class="how__header">
+        <h2>Como funciona</h2>
+        <p>Três passos simples para ter controle total das suas finanças</p>
+      </div>
+      <div class="how__steps">
+        <div class="how__step">
+          <div class="how__step-num how__step-num--sage">01</div>
+          <h3>Configure seu perfil</h3>
+          <p>Informe sua renda mensal e seus gastos fixos. O Facilite calcula automaticamente seu limite disponível.</p>
+        </div>
+        <div class="how__line"></div>
+        <div class="how__step">
+          <div class="how__step-num how__step-num--yellow">02</div>
+          <h3>Lance seus gastos</h3>
+          <p>Adicione suas despesas e receitas por categoria. Cadastre suas assinaturas recorrentes uma única vez.</p>
+        </div>
+        <div class="how__line"></div>
+        <div class="how__step">
+          <div class="how__step-num how__step-num--white">03</div>
+          <h3>Acompanhe e decida</h3>
+          <p>Visualize seu dashboard, gere relatórios mensais e tome decisões financeiras com clareza.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ PERSONAS / USO ═══ -->
+  <section class="personas">
+    <div class="container">
+      <h2 class="personas__title">Para qualquer perfil financeiro</h2>
+      <div class="personas__grid">
+
+        <div class="persona-card persona-card--sage">
+          <span class="persona-pill">Iniciante</span>
+          <div class="persona-card__icon">🌱</div>
+          <h3>Começando a organizar</h3>
+          <p>Nunca controlou gastos antes? O Facilite te guia passo a passo sem complicação. Simples como uma planilha, poderoso como um sistema.</p>
+        </div>
+
+        <div class="persona-card persona-card--yellow">
+          <span class="persona-pill">Organizado</span>
+          <div class="persona-card__icon">⚡</div>
+          <h3>Já controla, quer mais</h3>
+          <p>Migre suas planilhas do Excel para o Facilite. Ganhe tempo, tenha dashboards automáticos e relatórios gerados em segundos.</p>
+        </div>
+
+        <div class="persona-card persona-card--dark">
+          <span class="persona-pill">Avançado</span>
+          <div class="persona-card__icon">🎯</div>
+          <h3>Metas e investimentos</h3>
+          <p>Acompanhe metas financeiras, projete sobras para investimento e tenha visão completa da sua evolução patrimonial.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ DEPOIMENTOS ═══ -->
+  <section class="testimonials">
+    <div class="container">
+      <h2 class="testimonials__title">Quem já usa, não larga</h2>
+      <div class="testimonials__grid">
+
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p>"Finalmente entendi para onde ia todo o meu dinheiro. Em uma semana já cortei R$ 300 em gastos que nem percebia."</p>
+          <div class="testi-author">
+            <div class="testi-avatar">AM</div>
+            <div>
+              <strong>Ana Martins</strong>
+              <span>Designer Freelancer</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p>"O relatório mensal me salvou. Eu simplesmente abro, vejo o resumo e já sei o que precisa mudar. Muito mais fácil que Excel."</p>
+          <div class="testi-author">
+            <div class="testi-avatar">RC</div>
+            <div>
+              <strong>Rafael Costa</strong>
+              <span>Desenvolvedor</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p>"Descobri que pagava R$ 480 por mês em assinaturas que mal usava. Cancelei metade e comecei a investir o resto."</p>
+          <div class="testi-author">
+            <div class="testi-avatar">JS</div>
+            <div>
+              <strong>Juliana Santos</strong>
+              <span>Professora</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ PREÇOS ═══ -->
+  <section class="pricing" id="precos">
+    <div class="container">
+      <div class="pricing__header">
+        <h2>Preços simples, sem surpresa</h2>
+        <p>Comece grátis. Evolua quando quiser.</p>
+      </div>
+      <div class="pricing__grid">
+
+        <div class="pricing-card">
+          <div class="pricing-card__tag">Grátis</div>
+          <div class="pricing-card__price">R$ 0<span>/mês</span></div>
+          <ul class="pricing-card__list">
+            <li>✓ Dashboard básico</li>
+            <li>✓ Até 50 lançamentos/mês</li>
+            <li>✓ Controle de assinaturas</li>
+            <li>✓ Relatório mensal simplificado</li>
+            <li class="muted">✗ Alertas de limite</li>
+            <li class="muted">✗ Histórico completo</li>
+          </ul>
+          <a href="auth.html" class="btn-secondary">Começar grátis</a>
+        </div>
+
+        <div class="pricing-card pricing-card--featured">
+          <div class="pricing-card__badge">Mais popular</div>
+          <div class="pricing-card__tag">Pro</div>
+          <div class="pricing-card__price">R$ 19<span>/mês</span></div>
+          <ul class="pricing-card__list">
+            <li>✓ Dashboard completo</li>
+            <li>✓ Lançamentos ilimitados</li>
+            <li>✓ Controle de assinaturas</li>
+            <li>✓ Relatórios detalhados com IA</li>
+            <li>✓ Alertas de limite</li>
+            <li>✓ Histórico de 12 meses</li>
+          </ul>
+          <a href="#" class="btn-primary">Assinar Pro</a>
+        </div>
+
+        <div class="pricing-card">
+          <div class="pricing-card__tag">Família</div>
+          <div class="pricing-card__price">R$ 29<span>/mês</span></div>
+          <ul class="pricing-card__list">
+            <li>✓ Tudo do Pro</li>
+            <li>✓ Até 5 usuários</li>
+            <li>✓ Visão consolidada da família</li>
+            <li>✓ Metas compartilhadas</li>
+            <li>✓ Suporte prioritário</li>
+            <li>✓ Histórico ilimitado</li>
+          </ul>
+          <a href="#" class="btn-secondary">Assinar Família</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ CTA FINAL ═══ -->
+  <section class="cta-final">
+    <div class="container">
+      <h2>Pronto para <span class="text-green">facilitar</span><br/>sua vida financeira?</h2>
+      <p>Crie sua conta grátis em menos de 2 minutos. Sem cartão de crédito.</p>
+      <a href="auth.html" class="btn-primary btn--lg btn--xl">Criar conta grátis agora →</a>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ FOOTER ═══ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <div class="nav__logo" style="margin-bottom:1rem">
+            <div class="nav__logo-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 2L13 8H19L14 12L16 18L10 14L4 18L6 12L1 8H7L10 2Z" fill="#22C55E"/>
+              </svg>
+            </div>
+            <span style="color:#fff">Facilite</span>
+          </div>
+          <p>Sua planilha financeira online. Simples, visual e poderosa.</p>
+          <div class="footer__socials">
+            <a href="#" class="social-icon">ig</a>
+            <a href="#" class="social-icon">tw</a>
+            <a href="#" class="social-icon">yt</a>
+          </div>
+        </div>
+
+        <div class="footer__col">
+          <h4>Produto</h4>
+          <a href="#">Dashboard</a>
+          <a href="#">Lançamentos</a>
+          <a href="#">Assinaturas</a>
+          <a href="#">Relatórios</a>
+        </div>
+
+        <div class="footer__col">
+          <h4>Empresa</h4>
+          <a href="#">Sobre</a>
+          <a href="#">Blog</a>
+          <a href="#">Carreiras</a>
+          <a href="#">Imprensa</a>
+        </div>
+
+        <div class="footer__col">
+          <h4>Suporte</h4>
+          <a href="#">Central de ajuda</a>
+          <a href="#">Contato</a>
+          <a href="#">Privacidade</a>
+          <a href="#">Termos de uso</a>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <p>© 2026 Facilite. Todos os direitos reservados.</p>
+        <p>Feito com ♥ para quem quer organizar as finanças de verdade.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

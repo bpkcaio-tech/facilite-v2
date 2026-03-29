@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Facilite — Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="js/auth-guard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="chatbot.css" />
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar__logo">
+      <div class="sidebar__logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L15.5 9H22L16.5 13L18.5 20L12 16L5.5 20L7.5 13L2 9H8.5L12 2Z" fill="#22C55E"/>
+        </svg>
+      </div>
+      <span class="sidebar__logo-text">facilite</span>
+    </div>
+
+    <nav class="sidebar__nav">
+      <a href="#" class="nav-item nav-item--active">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <span>Lançamentos</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span>Relatórios</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="2"/>
+        </svg>
+        <span>Contas</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>Reservas</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-item__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M4 4h16v16H4z" rx="2"/><path d="M9 9h6"/><path d="M9 13h4"/>
+        </svg>
+        <span>Assinaturas</span>
+      </a>
+    </nav>
+
+    <div class="sidebar__user" style="cursor:pointer" onclick="FaciliteRouter.navigate('perfil')">
+      <div class="sidebar__avatar">F</div>
+      <div class="sidebar__user-info">
+        <span class="sidebar__user-name user-name">Felipe</span>
+        <span class="sidebar__user-role">Conta pessoal</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════ MAIN WRAPPER ══════════════════════ -->
+  <div class="main-wrapper">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar__hamburger" id="hamburger" aria-label="Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      <div class="topbar__title-group">
+        <h1 class="topbar__title">Dashboard</h1>
+        <p class="topbar__subtitle">Visão geral financeira</p>
+      </div>
+
+      <div class="topbar__controls">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+          <span id="data-topbar" style="font-size:13px;font-weight:600;color:#F0FDF4"></span>
+          <span id="hora-topbar" style="font-size:11px;color:#6B7280"></span>
+        </div>
+        <button class="topbar__icon-btn" aria-label="Notificações" onclick="NotifPanel.toggle()" id="btn-notificacoes">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="notif-badge" id="notif-badge-count" style="display:none">0</span>
+        </button>
+        <!-- Painel de notificações -->
+        <div id="notif-panel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;max-height:400px;overflow-y:auto;background:#0D1B12;border:1px solid rgba(255,255,255,0.08);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,0.5);z-index:9999;padding:0">
+          <div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center">
+            <span style="font-family:'Sora',sans-serif;font-size:14px;font-weight:600;color:#F0FDF4">Notificações</span>
+            <button onclick="NotifPanel.limparTodas()" style="background:none;border:none;color:#4B5563;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Limpar</button>
+          </div>
+          <div id="notif-list"></div>
+        </div>
+        <div class="topbar__avatar" style="cursor:pointer" onclick="FaciliteRouter.navigate('perfil')" title="Meu perfil">F</div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CONTENT -->
+    <main class="dashboard">
+
+      <!-- ── KPI CARDS ── -->
+      <div class="kpi-grid">
+
+        <!-- Saldo Total -->
+        <div class="kpi-card card card-saldo">
+          <div class="kpi-header">
+            <span class="label">Saldo Total</span>
+            <div class="kpi-icon kpi-icon--pos">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value" style="color:var(--color-positive)"><span id="valor-saldo-total">R$ 0,00</span></div>
+          <div class="kpi-footer">
+            <span class="badge-positive" id="badge-saldo"></span>
+            <svg class="sparkline" viewBox="0 0 80 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="0,24 13,19 27,21 40,12 54,14 67,7 80,4"
+                stroke="#22C55E" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Receita Mensal -->
+        <div class="kpi-card card">
+          <div class="kpi-header">
+            <span class="label">Receita Mensal</span>
+            <div class="kpi-icon kpi-icon--pos">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value" style="color:var(--color-positive)">
+            <span id="valor-receita-mensal">R$ 0,00</span>
+          </div>
+          <div class="kpi-footer">
+            <span class="badge-positive" id="badge-receita"></span>
+            <div class="mini-bars">
+              <div class="mini-bar" style="height:45%"></div>
+              <div class="mini-bar" style="height:70%"></div>
+              <div class="mini-bar" style="height:100%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Despesas Mensais -->
+        <div class="kpi-card card">
+          <div class="kpi-header">
+            <span class="label">Despesas Mensais</span>
+            <div class="kpi-icon kpi-icon--neg">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value" style="color:var(--color-negative)"><span id="valor-despesas-mensais">R$ 0,00</span></div>
+          <div class="kpi-footer">
+            <span class="badge-negative" id="badge-despesa"></span>
+            <div class="mini-bars">
+              <div class="mini-bar mini-bar--red" style="height:85%"></div>
+              <div class="mini-bar mini-bar--red" style="height:65%"></div>
+              <div class="mini-bar mini-bar--red" style="height:48%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Disponível -->
+        <div class="kpi-card card">
+          <div class="kpi-header">
+            <span class="label">Disponível</span>
+            <div class="kpi-icon kpi-icon--pos">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value"><span id="valor-disponivel">R$ 0,00</span></div>
+          <div class="kpi-footer">
+            <span class="badge-positive" id="valor-percentual-badge">disponível</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── CHART + SUMMARY ── -->
+      <div class="chart-section">
+
+        <div class="chart-card card">
+          <div class="chart-card__header">
+            <div>
+              <h2 class="section-title">Fluxo de Receitas & Despesas</h2>
+              <p class="chart-sub">Últimos 6 meses</p>
+            </div>
+            <div class="chart-tabs">
+              <button class="chart-tab chart-tab--active" data-tab="all">Tudo</button>
+              <button class="chart-tab" data-tab="receitas">Receitas</button>
+              <button class="chart-tab" data-tab="despesas">Despesas</button>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="flowChart"></canvas>
+          </div>
+        </div>
+
+        <div class="summary-card card">
+          <h2 class="section-title" style="margin-bottom:1.25rem">Resumo do Mês</h2>
+          <div class="summary-list">
+            <div class="summary-row">
+              <span class="summary-label">Renda</span>
+              <span class="summary-val pos" id="resumo-renda">R$ 0,00</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Gastos Fixos</span>
+              <span class="summary-val neg" id="resumo-fixos">R$ 0,00</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">Gastos Variáveis</span>
+              <span class="summary-val neg" id="resumo-variaveis">R$ 0,00</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row summary-row--total">
+              <span class="summary-label">Disponível</span>
+              <span class="summary-val pos" id="resumo-disponivel" style="font-size:17px;font-weight:700">R$ 0,00</span>
+            </div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-track">
+              <div class="gauge-fill" id="gaugeFill"></div>
+            </div>
+            <div class="gauge-labels">
+              <span>0%</span>
+              <span class="gauge-pct" id="gauge-pct-label">0% comprometido</span>
+              <span>100%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── CARDS + TRANSACTIONS ── -->
+      <div class="cards-tx-grid">
+
+        <!-- Minhas Reservas (dinâmico) -->
+        <div class="cc-section card">
+          <div class="section-header">
+            <h2 class="section-title">Minhas Reservas</h2>
+            <button class="btn-primary-sm" onclick="if(window.ReservasPage){ReservasPage.abrirModal()}else{FaciliteRouter.navigate('reservas')}">+ Nova reserva</button>
+          </div>
+          <div id="dash-reservas-list"><!-- preenchido por charts-update.js --></div>
+          <div style="text-align:center;padding:8px 0 4px">
+            <a href="#reservas" class="link-green" onclick="event.preventDefault();FaciliteRouter.navigate('reservas')" style="font-size:13px">Ver todas as reservas →</a>
+          </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="tx-section card">
+          <div class="section-header">
+            <h2 class="section-title">Últimos Lançamentos</h2>
+            <a href="#lancamentos" class="link-green" onclick="event.preventDefault();FaciliteRouter.navigate('lancamentos')">Ver todos →</a>
+          </div>
+          <ul class="tx-list" id="dash-tx-list">
+            <!-- Preenchido dinamicamente por charts-update.js -->
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- ── SUBSCRIPTIONS + BILLS ── -->
+      <div class="subs-bills-grid">
+
+        <!-- Subscriptions -->
+        <div class="subs-card card">
+          <div class="section-header">
+            <div style="display:flex;align-items:center;gap:8px">
+              <h2 class="section-title">Assinaturas Ativas</h2>
+              <span class="count-badge" id="dash-subs-count">0</span>
+            </div>
+            <button class="btn-primary-sm" onclick="FaciliteRouter.navigate('assinaturas');setTimeout(()=>{if(window.AssinaturasPage)AssinaturasPage.abrirModalNova()},300)">+ Nova assinatura</button>
+          </div>
+          <ul class="subs-list" id="dash-subs-list"><!-- dinâmico --></ul>
+          <div class="subs-total">
+            <span>Total mensal</span>
+            <strong id="dash-subs-total">R$ 0,00</strong>
+          </div>
+        </div>
+
+        <!-- Resumo Reservas -->
+        <div class="bills-card card">
+          <div class="section-header">
+            <h2 class="section-title">Progresso Geral</h2>
+          </div>
+          <div id="dash-reservas-resumo" style="padding:8px 0">
+            <!-- preenchido por charts-update.js -->
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div><!-- /main-wrapper -->
+</div><!-- /app-layout -->
+
+<!-- ══════════════ CHATBOT FAB ══════════════ -->
+<div id="chatbot-fab" class="chatbot-fab" onclick="toggleChatbot()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+  <div class="chatbot-fab-badge" id="chatbot-badge">1</div>
+</div>
+
+<!-- ══════════════ CHATBOT PANEL ══════════════ -->
+<div id="chatbot-panel" class="chatbot-panel chatbot-hidden">
+
+  <div class="chatbot-header">
+    <div class="chatbot-header-info">
+      <div class="chatbot-avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 2L15.5 9H22L16.5 13L18.5 20L12 16L5.5 20L7.5 13L2 9H8.5L12 2Z" fill="currentColor" stroke="none"/>
+        </svg>
+      </div>
+      <div>
+        <div class="chatbot-name">Assistente Financeiro</div>
+        <div class="chatbot-status">
+          <span class="status-dot"></span> Online
+        </div>
+      </div>
+    </div>
+    <div class="chatbot-header-actions">
+      <button class="chatbot-btn-icon" onclick="clearChat()" title="Limpar conversa">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+      </button>
+      <button class="chatbot-btn-icon" onclick="toggleChatbot()" title="Fechar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="chatbot-quick-actions">
+    <button class="quick-chip" onclick="sendQuickMessage('Qual meu saldo atual?')">💰 Saldo</button>
+    <button class="quick-chip" onclick="sendQuickMessage('Como estão meus gastos este mês?')">📊 Gastos</button>
+    <button class="quick-chip" onclick="sendQuickMessage('Quais faturas vencem em breve?')">💳 Faturas</button>
+    <button class="quick-chip" onclick="sendQuickMessage('Me dê dicas para economizar')">💡 Dicas</button>
+    <button class="quick-chip" onclick="sendQuickMessage('Quanto tenho disponível para gastar?')">🎯 Limite</button>
+  </div>
+
+  <div class="chatbot-messages" id="chatbot-messages"></div>
+
+  <div class="chatbot-input-area">
+    <div class="chatbot-input-wrapper">
+      <textarea
+        id="chatbot-input"
+        class="chatbot-input"
+        placeholder="Pergunte ou registre um gasto..."
+        rows="1"
+        onkeydown="handleInputKeydown(event)"
+        oninput="autoResizeInput(this)"
+      ></textarea>
+      <button class="chatbot-send-btn" id="chatbot-send" type="button" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+    <div class="chatbot-input-hint">Ex: "Gastei R$80 no mercado" · "Qual meu saldo?" · "Analise meus gastos"</div>
+  </div>
+
+</div>
+
+<!-- Modal edição de receita -->
+<div id="modal-receita" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:99999;align-items:center;justify-content:center">
+  <div style="background:#0F1A12;border:1px solid rgba(34,197,94,0.2);border-radius:16px;padding:28px;width:340px;box-shadow:0 24px 64px rgba(0,0,0,0.6),0 0 32px rgba(34,197,94,0.1);font-family:'DM Sans',sans-serif">
+    <h3 style="font-family:'Sora',sans-serif;font-size:16px;font-weight:600;color:#F0FDF4;margin:0 0 6px">💰 Editar Receita Mensal</h3>
+    <p style="color:#6B7280;font-size:13px;margin:0 0 20px">Informe sua receita mensal total (salário + outras entradas)</p>
+    <label style="font-size:12px;color:#6B7280;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px">Valor da receita</label>
+    <div style="position:relative;margin-bottom:20px">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6B7280;font-size:14px;font-weight:600;pointer-events:none">R$</span>
+      <input
+        id="input-receita"
+        type="text"
+        inputmode="decimal"
+        placeholder="13.883,00"
+        style="width:100%;box-sizing:border-box;background:#070E0A;border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#F0FDF4;font-family:'Sora',sans-serif;font-size:20px;font-weight:700;padding:12px 12px 12px 36px;outline:none;transition:border-color 0.2s"
+        onfocus="this.style.borderColor='rgba(34,197,94,0.5)'"
+        onblur="this.style.borderColor='rgba(255,255,255,0.08)'"
+        onkeydown="if(event.key==='Enter') salvarReceita()"
+      >
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="fecharModalReceita()" style="flex:1;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#6B7280;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">Cancelar</button>
+      <button onclick="salvarReceita()" style="flex:1;padding:11px;background:#22C55E;border:none;border-radius:10px;color:#000;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#16A34A';this.style.color='#fff'" onmouseout="this.style.background='#22C55E';this.style.color='#000'">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Core modules -->
+<script src="js/storage.js"></script>
+<script src="js/state.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/router.js"></script>
+
+<!-- Data & Dashboard -->
+<script src="chatbot-data.js"></script>
+<script src="dashboard.js"></script>
+<script src="js/charts-update.js"></script>
+
+<!-- Page modules -->
+<script src="js/lancamentos.js"></script>
+<script src="js/relatorios.js"></script>
+<script src="js/contas.js"></script>
+<script src="js/reservas.js"></script>
+<script src="js/assinaturas.js"></script>
+<script src="js/perfil.js"></script>
+<script src="js/notif-panel.js"></script>
+<script src="js/virada-mes.js"></script>
+
+<!-- Chatbot -->
+<script src="chatbot.js"></script>
+
+<!-- Paywall overlay (plano gratuito) -->
+<div id="paywall-overlay" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(7,14,10,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center">
+  <div style="max-width:480px;text-align:center;padding:40px 32px">
+    <div style="font-size:56px;margin-bottom:16px">🔒</div>
+    <h2 style="font-family:'Sora',sans-serif;font-size:24px;font-weight:700;color:#F0FDF4;margin:0 0 10px">Assine para acessar o Dashboard</h2>
+    <p style="font-size:15px;color:#6B7280;line-height:1.6;margin:0 0 32px">
+      Para usar o Facilite e gerenciar suas finanças, escolha um plano abaixo. Cancele quando quiser.
+    </p>
+
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px">
+      <!-- Pessoal -->
+      <a href="checkout.html?plano=pessoal" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);border-radius:14px;text-decoration:none;transition:all 0.15s" onmouseover="this.style.borderColor='rgba(34,197,94,0.5)';this.style.background='rgba(34,197,94,0.1)'" onmouseout="this.style.borderColor='rgba(34,197,94,0.25)';this.style.background='rgba(34,197,94,0.06)'">
+        <div style="text-align:left">
+          <div style="font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:#22C55E">Pessoal</div>
+          <div style="font-size:12px;color:#6B7280;margin-top:2px">Relatórios, exportação, sem limites</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Sora',sans-serif;font-size:20px;font-weight:800;color:#F0FDF4">R$ 19,90</div>
+          <div style="font-size:11px;color:#4B5563">/mês</div>
+        </div>
+      </a>
+
+      <!-- Corporativo -->
+      <a href="checkout.html?plano=corporativo" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:14px;text-decoration:none;transition:all 0.15s" onmouseover="this.style.borderColor='rgba(139,92,246,0.45)';this.style.background='rgba(139,92,246,0.1)'" onmouseout="this.style.borderColor='rgba(139,92,246,0.2)';this.style.background='rgba(139,92,246,0.06)'">
+        <div style="text-align:left">
+          <div style="font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:#8B5CF6">Corporativo</div>
+          <div style="font-size:12px;color:#6B7280;margin-top:2px">Tudo do Pessoal + 5 dispositivos + suporte</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Sora',sans-serif;font-size:20px;font-weight:800;color:#F0FDF4">R$ 49,90</div>
+          <div style="font-size:11px;color:#4B5563">/mês</div>
+        </div>
+      </a>
+    </div>
+
+    <button onclick="FaciliteAuth?FaciliteAuth.logout():localStorage.removeItem('facilite_sessao')||location.replace('auth.html')" style="background:none;border:none;color:#4B5563;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:color 0.15s" onmouseover="this.style.color='#9CA3AF'" onmouseout="this.style.color='#4B5563'">
+      Sair da conta
+    </button>
+  </div>
+</div>
+
+<script>
+  // Mostrar paywall se plano gratuito
+  if (window._facilitePaywall) {
+    document.getElementById('paywall-overlay').style.display = 'flex';
+  }
+</script>
+
+</body>
+</html>
