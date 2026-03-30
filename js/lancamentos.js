@@ -704,64 +704,80 @@ const LancamentosPage = {
     };
 
     if (this.editandoId) {
-      FaciliteStorage.editLancamento(this.editandoId, {
-        ...lancBase,
-        mes: new Date(data + 'T12:00:00').getMonth() + 1,
-        ano: new Date(data + 'T12:00:00').getFullYear(),
+      var dataObj2 = new Date(data + 'T12:00:00');
+      var lancEditado = Object.assign({}, lancBase, {
+        mes: dataObj2.getMonth() + 1,
+        ano: dataObj2.getFullYear()
       });
+      FaciliteStorage.editLancamento(this.editandoId, lancEditado);
+
+      if (window.FaciliteSync) {
+        FaciliteSync.editarLancamento(this.editandoId, lancEditado);
+      }
+
       FaciliteNotify.success('Lançamento atualizado!');
+
     } else if (parcelado && numParcelas >= 2) {
-      // Parcelamento: divide o valor total em N parcelas distribuídas nos meses
-      const valorParcela = this.tipoLanc === 'despesa'
+      // Parcelamento — mantém como estava, apenas adiciona sync para cada parcela
+      var valorParcela = this.tipoLanc === 'despesa'
         ? -Math.abs(valorRaw / numParcelas)
         : Math.abs(valorRaw / numParcelas);
-      const dt = new Date(data + 'T12:00:00');
-      const parcelamentoId = FaciliteStorage.uid('parc');
+      var dt = new Date(data + 'T12:00:00');
+      var parcelamentoId = FaciliteStorage.uid('parc');
 
-      for (let i = 0; i < numParcelas; i++) {
-        const futuro = new Date(dt.getFullYear(), dt.getMonth() + i, dt.getDate());
-        FaciliteStorage.addLancamento({
-          ...lancBase,
+      for (var i = 0; i < numParcelas; i++) {
+        var futuro = new Date(dt.getFullYear(), dt.getMonth() + i, dt.getDate());
+        var parcela = Object.assign({}, lancBase, {
           valor: valorParcela,
-          descricao: `${descricao} (${i + 1}/${numParcelas})`,
+          descricao: descricao + ' (' + (i + 1) + '/' + numParcelas + ')',
           data: futuro.toISOString().split('T')[0],
-          parcelamentoId,
+          parcelamentoId: parcelamentoId,
           parcelaAtual: i + 1,
           totalParcelas: numParcelas,
           status: i === 0 ? this.statusLanc : 'pendente',
+          mes: futuro.getMonth() + 1,
+          ano: futuro.getFullYear()
+        });
+        FaciliteStorage.addLancamento(parcela);
+        if (window.FaciliteSync) FaciliteSync.adicionarLancamento(parcela);
+      }
+      FaciliteNotify.success(numParcelas + 'x de ' + fmtBRL(Math.abs(valorRaw / numParcelas)) + ' lancadas!');
+
+    } else {
+      // Lançamento simples — envia ao Supabase primeiro
+      var dataObj = new Date(data + 'T12:00:00');
+      var lancComMes = Object.assign({}, lancBase, {
+        mes: dataObj.getMonth() + 1,
+        ano: dataObj.getFullYear()
+      });
+
+      FaciliteStorage.addLancamento(lancComMes);
+
+      if (window.FaciliteSync) {
+        FaciliteSync.adicionarLancamento(lancComMes).then(function(ok) {
+          if (!ok) console.warn('[Sync] Falha ao enviar ao Supabase, dados salvos localmente');
         });
       }
 
-      FaciliteNotify.success(`${numParcelas}x de ${fmtBRL(Math.abs(valorRaw / numParcelas))} lançadas! Total: ${fmtBRL(Math.abs(valorRaw))}`);
-    } else {
-      FaciliteStorage.addLancamento(lancBase);
-
-      // Sincronizar com Supabase
-      if (window.FaciliteSync) {
-        const dataObj = new Date(data + 'T12:00:00');
-        FaciliteSync.salvarLancamento({
-          ...lancBase,
-          mes: dataObj.getMonth() + 1,
-          ano: dataObj.getFullYear(),
-        }).catch(function(e) { console.warn('Sync error:', e); });
-      }
-
-      // Se recorrente: criar para meses futuros
+      // Recorrente
       if (recorrente && duracao > 0) {
-        const dt = new Date(data + 'T12:00:00');
-        for (let i = 1; i < duracao; i++) {
-          const futuro = new Date(dt.getFullYear(), dt.getMonth() + i, diaVenc || dt.getDate());
-          FaciliteStorage.addLancamento({
-            ...lancBase,
-            data: futuro.toISOString().split('T')[0],
+        var dtRec = new Date(data + 'T12:00:00');
+        for (var j = 1; j < duracao; j++) {
+          var futuroRec = new Date(dtRec.getFullYear(), dtRec.getMonth() + j, diaVenc || dtRec.getDate());
+          var lancRec = Object.assign({}, lancBase, {
+            data: futuroRec.toISOString().split('T')[0],
+            mes: futuroRec.getMonth() + 1,
+            ano: futuroRec.getFullYear()
           });
+          FaciliteStorage.addLancamento(lancRec);
+          if (window.FaciliteSync) FaciliteSync.adicionarLancamento(lancRec);
         }
       }
 
       if (this.tipoLanc === 'reserva') {
-        FaciliteNotify.success(`${fmtBRL(Math.abs(valor))} guardado na reserva!`);
+        FaciliteNotify.success(fmtBRL(Math.abs(valor)) + ' guardado na reserva!');
       } else {
-        FaciliteNotify.success(`${this.tipoLanc === 'despesa' ? 'Despesa' : 'Receita'} de ${fmtBRL(Math.abs(valor))} registrada!`);
+        FaciliteNotify.success((this.tipoLanc === 'despesa' ? 'Despesa' : 'Receita') + ' de ' + fmtBRL(Math.abs(valor)) + ' registrada!');
       }
     }
 
@@ -790,26 +806,49 @@ const LancamentosPage = {
     this.abrirModal(id);
   },
 
-  remover(id) {
+  async remover(id) {
     this._fecharContextMenu();
-    const todos = FaciliteStorage.get('lancamentos') || [];
-    const l = todos.find(x => x.id === id);
+    var todos = FaciliteStorage.get('lancamentos') || [];
+    var l = todos.find(function(x) { return x.id === id; });
     if (!l) return;
 
+    var confirmar = false;
+    var excluirTodos = false;
+
     if (l.recorrente) {
-      const choice = confirm('Excluir TODOS os lançamentos recorrentes com essa descrição?\n\n(Cancelar = excluir só este)');
-      if (choice) {
-        FaciliteStorage.set('lancamentos', todos.filter(x => !(x.descricao === l.descricao && x.recorrente)));
-      } else {
-        FaciliteStorage.removeLancamento(id);
-      }
+      var choice = confirm('Excluir TODOS os lançamentos recorrentes com essa descrição?\n\n(Cancelar = excluir só este)');
+      confirmar = true;
+      excluirTodos = choice;
     } else {
-      if (!confirm('Excluir este lançamento?')) return;
+      confirmar = confirm('Excluir este lançamento?');
+    }
+
+    if (!confirmar && !l.recorrente) return;
+
+    if (excluirTodos) {
+      var paraExcluir = todos.filter(function(x) {
+        return x.descricao === l.descricao && x.recorrente;
+      });
+      var idsParaExcluir = paraExcluir.map(function(x) { return x.id; });
+
+      FaciliteStorage.set('lancamentos', todos.filter(function(x) {
+        return !(x.descricao === l.descricao && x.recorrente);
+      }));
+
+      if (window.FaciliteSync) {
+        idsParaExcluir.forEach(function(rid) {
+          FaciliteSync.excluirLancamento(rid);
+        });
+      }
+
+    } else {
       FaciliteStorage.removeLancamento(id);
+
+      if (window.FaciliteSync) {
+        await FaciliteSync.excluirLancamento(id);
+      }
     }
-    if (window.FaciliteSync) {
-      FaciliteSync.excluirLancamento(id);
-    }
+
     this.render();
     FaciliteState.refresh();
     FaciliteNotify.success('Lançamento removido.');
