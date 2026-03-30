@@ -66,6 +66,11 @@ const LancamentosPage = {
 
     FaciliteStorage.set('receita', { mensal: valor, nomeReceita: nome, diaRecebimento: dia });
 
+    // Sincronizar receita com Supabase
+    if (window.FaciliteSync) {
+      FaciliteSync.salvarReceita(valor).catch(function(e) { console.warn('Sync receita:', e); });
+    }
+
     // Criar/atualizar lançamento recorrente de receita no mês atual
     var mes = FaciliteState.mesAtual;
     var ano = FaciliteState.anoAtual;
@@ -688,6 +693,16 @@ const LancamentosPage = {
       FaciliteNotify.success(`${numParcelas}x de ${fmtBRL(Math.abs(valorRaw / numParcelas))} lançadas! Total: ${fmtBRL(Math.abs(valorRaw))}`);
     } else {
       FaciliteStorage.addLancamento(lancBase);
+
+      // Sincronizar com Supabase
+      if (window.FaciliteSync) {
+        const dataObj = new Date(data + 'T12:00:00');
+        FaciliteSync.salvarLancamento({
+          ...lancBase,
+          mes: dataObj.getMonth() + 1,
+          ano: dataObj.getFullYear(),
+        }).catch(function(e) { console.warn('Sync error:', e); });
+      }
 
       // Se recorrente: criar para meses futuros
       if (recorrente && duracao > 0) {
