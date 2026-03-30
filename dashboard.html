@@ -383,7 +383,20 @@
       FaciliteSync.carregarTudo();
     }
   }, 2000);
-  }
+
+  // Sincronizar quando o usuário volta para a aba/app
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && window.FaciliteSync) {
+      FaciliteSync.carregarTudo();
+    }
+  });
+
+  // Sincronizar quando a janela ganha foco
+  window.addEventListener('focus', function() {
+    if (window.FaciliteSync) {
+      FaciliteSync.carregarTudo();
+    }
+  });
 </script>
 
 <!-- Verificação de plano — roda DEPOIS de todos os scripts -->
