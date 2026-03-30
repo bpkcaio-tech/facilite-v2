@@ -6,6 +6,8 @@ window.FacilitePlano = {
   ehPago: function() {
     try {
       var s = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
+      // Admins sempre têm acesso total
+      if (s.admin === true) return true;
       if (s.plano === 'pago' || s.plano === 'pessoal' || s.plano === 'corporativo') {
         if (s.planoExpira && new Date(s.planoExpira) < new Date()) {
           s.plano = 'gratuito';

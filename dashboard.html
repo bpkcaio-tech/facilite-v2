@@ -394,6 +394,7 @@
   function ehPago() {
     try {
       var s = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
+      if (s.admin === true) return true;
       if (s.plano === 'pago' || s.plano === 'pessoal' || s.plano === 'corporativo') {
         if (s.planoExpira && new Date(s.planoExpira) < new Date()) return false;
         return true;
