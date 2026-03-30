@@ -22,7 +22,7 @@ window.FaciliteSync = {
     var uid = this._userId();
     if (!uid) return;
     try {
-      await fetch(SUPABASE_URL + '/rest/v1/lancamentos', {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/lancamentos', {
         method: 'POST',
         headers: this._h(),
         body: JSON.stringify({
@@ -39,6 +39,7 @@ window.FaciliteSync = {
           recorrente: l.recorrente || false
         })
       });
+      if (!r.ok) return;
       console.log('[Supabase] Lancamento salvo');
     } catch(e) { console.warn('[Supabase] Erro:', e.message); }
   },
@@ -60,7 +61,7 @@ window.FaciliteSync = {
   salvarUsuario: async function(u) {
     if (!u || !u.id) return;
     try {
-      await fetch(SUPABASE_URL + '/rest/v1/usuarios?on_conflict=id', {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/usuarios?on_conflict=id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'resolution=merge-duplicates,return=representation' },
         body: JSON.stringify({
@@ -68,6 +69,7 @@ window.FaciliteSync = {
           foto: u.foto, provider: u.provider, plano: u.plano || 'gratuito'
         })
       });
+      if (r.status === 401 || r.status === 404) return; // tabela não existe ou sem permissão — ignorar
     } catch(e) { console.warn('[Supabase] Erro usuario:', e.message); }
   },
 

@@ -308,11 +308,6 @@ window.FaciliteAuth = {
     localStorage.setItem('facilite_usuarios', JSON.stringify(usuarios));
     this.salvarSessao(novoUsuario);
 
-    // Criar conta no Supabase (para sincronização)
-    if (window.FaciliteSync) {
-      await FaciliteSync.signUp(email, senha).catch(function(e) { console.warn('[Auth] Supabase signUp:', e); });
-    }
-
     return { sucesso: true };
   },
 
@@ -323,12 +318,6 @@ window.FaciliteAuth = {
     if (usuario.provider !== 'email') return { sucesso: false, erro: 'Esta conta usa login com ' + usuario.provider + '. Use o botão correspondente.' };
     if (usuario.senha !== hashSenha(senha)) return { sucesso: false, erro: 'Senha incorreta. Tente novamente.' };
     this.salvarSessao(usuario);
-
-    // Login no Supabase + sincronizar dados
-    if (window.FaciliteSync) {
-      await FaciliteSync.signIn(email, senha).catch(function(e) { console.warn('[Auth] Supabase signIn:', e); });
-      await FaciliteSync.init().catch(function(e) { console.warn('[Auth] Sync init:', e); });
-    }
 
     return { sucesso: true };
   },
@@ -374,7 +363,7 @@ window.FaciliteAuth = {
           FaciliteSync.carregarTudo();
         }, 800);
       }
-    }, 500);
+    }, 1000);
   },
 
   estaLogado() {
@@ -390,7 +379,6 @@ window.FaciliteAuth = {
   },
 
   logout() {
-    if (window.FaciliteSync) FaciliteSync.signOut().catch(function(){});
     localStorage.removeItem('facilite_sessao');
     window.location.href = 'auth.html';
   }
