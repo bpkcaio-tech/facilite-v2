@@ -249,8 +249,27 @@ const LancamentosPage = {
 
     const rect = event.target.getBoundingClientRect();
     menu.style.display = 'block';
-    menu.style.top = rect.bottom + 4 + 'px';
-    menu.style.left = Math.min(rect.left, window.innerWidth - 200) + 'px';
+
+    const menuHeight = menu.offsetHeight;
+    const menuWidth = menu.offsetWidth;
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    const topBelow = rect.bottom + 4;
+    const topAbove = rect.top - menuHeight - 4;
+    const fitsBelow = topBelow + menuHeight <= viewportHeight - 8;
+    const top = fitsBelow ? topBelow : Math.max(topAbove, 8);
+
+    let left = rect.left;
+    if (left + menuWidth > viewportWidth - 8) {
+      left = Math.max(viewportWidth - menuWidth - 8, 8);
+    }
+    if (left < 8) {
+      left = 8;
+    }
+
+    menu.style.top = top + 'px';
+    menu.style.left = left + 'px';
   },
 
   _fecharContextMenu() {
