@@ -377,27 +377,37 @@
 <!-- Chatbot desativado -->
 <!-- <script src="chatbot.js"></script> -->
 
-<!-- Sync bootstrap -->
+<!-- Sync Supabase automático -->
 <script>
-  setTimeout(function() {
-    if (window.FaciliteSync) {
-      FaciliteSync.carregarTudo();
+  // Boot: fica tentando até o usuário estar logado, aí puxa o Supabase
+  (function tentarSync() {
+    if (window.FaciliteSync && window.FaciliteSync._userId && FaciliteSync._userId()) {
+      FaciliteSync.carregarTudo(true);
+    } else {
+      setTimeout(tentarSync, 500);
     }
-  }, 2000);
+  })();
 
-  // Sincronizar quando o usuário volta para a aba/app
+  // Sync ao voltar para a aba (trocar de app no celular, etc)
   document.addEventListener('visibilitychange', function() {
     if (!document.hidden && window.FaciliteSync) {
-      FaciliteSync.carregarTudo();
+      FaciliteSync.carregarTudo(true);
     }
   });
 
-  // Sincronizar quando a janela ganha foco
+  // Sync ao ganhar foco (clicar na janela depois de ter saído)
   window.addEventListener('focus', function() {
     if (window.FaciliteSync) {
-      FaciliteSync.carregarTudo();
+      FaciliteSync.carregarTudo(true);
     }
   });
+
+  // Sync periódico a cada 30 segundos (mantém em sincronia em tempo real)
+  setInterval(function() {
+    if (window.FaciliteSync && !document.hidden) {
+      FaciliteSync.carregarTudo(true);
+    }
+  }, 30000);
 </script>
 
 <!-- Verificação de plano — roda DEPOIS de todos os scripts -->

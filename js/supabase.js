@@ -73,10 +73,10 @@ window.FaciliteSync = {
     } catch(e) { console.warn('[Supabase] Erro usuario:', e.message); }
   },
 
-  carregarTudo: async function() {
+  carregarTudo: async function(forcar) {
     var uid = this._userId();
     if (!uid) return;
-    if (this._carregando) return;
+    if (this._carregando && !forcar) return;
     this._carregando = true;
 
     try {
@@ -95,7 +95,6 @@ window.FaciliteSync = {
         var somenteLocal = local.filter(function(l) { return !idsServidor[l.id]; });
         var merged = lancamentosServidor.concat(somenteLocal);
         if (window.FaciliteStorage) FaciliteStorage.set('lancamentos', merged);
-        console.log('[Supabase] ' + lancamentosServidor.length + ' do servidor, ' + somenteLocal.length + ' locais');
       }
 
       var rRec = await fetch(
@@ -119,10 +118,11 @@ window.FaciliteSync = {
       if (typeof LancamentosPage !== 'undefined' && window.FaciliteRouter && FaciliteRouter.currentPage === 'lancamentos') {
         LancamentosPage.render();
       }
-      console.log('[Supabase] Sincronizacao concluida');
+
+      console.log('[Supabase] Sync concluido — ' + (lancamentosServidor ? lancamentosServidor.length : 0) + ' lancamentos');
 
     } catch(e) {
-      console.warn('[Supabase] Erro:', e.message);
+      console.warn('[Supabase] Erro sync:', e.message);
     } finally {
       this._carregando = false;
     }

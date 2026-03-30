@@ -360,10 +360,10 @@ window.FaciliteAuth = {
       if (window.FaciliteSync) {
         FaciliteSync.salvarUsuario(sessao);
         setTimeout(function() {
-          FaciliteSync.carregarTudo();
-        }, 800);
+          FaciliteSync.carregarTudo(true);
+        }, 600);
       }
-    }, 1000);
+    }, 800);
   },
 
   estaLogado() {
