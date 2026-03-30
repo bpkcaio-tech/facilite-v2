@@ -1768,3 +1768,185 @@ html, body {
   }
 }
 
+/* ═══════════════════════════════════════
+   SIDEBAR OVERLAY
+═══════════════════════════════════════ */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  cursor: pointer;
+}
+
+.sidebar-overlay.sidebar-overlay--visible {
+  display: block;
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVIDADE — TABLET (até 1024px)
+═══════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+  }
+
+  .sidebar.sidebar--open {
+    transform: translateX(0);
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .topbar__hamburger {
+    display: flex !important;
+  }
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVIDADE — MOBILE (até 768px)
+═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Dashboard padding */
+  .dashboard {
+    padding: 16px !important;
+  }
+
+  /* Topbar */
+  .topbar {
+    padding: 12px 16px !important;
+    position: relative;
+  }
+
+  .topbar__title {
+    font-size: 15px !important;
+  }
+
+  .topbar__subtitle {
+    font-size: 11px !important;
+  }
+
+  /* KPI cards — 2 colunas */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Chart e summary — coluna única */
+  .chart-section {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Cards e transações — coluna única */
+  .cards-tx-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Subs e bills — coluna única */
+  .subs-bills-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tabs de lançamentos com scroll horizontal */
+  .lanc-tabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .lanc-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Modais — sheet bottom no mobile */
+  .modal-overlay.modal--open {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  .modal-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+    border-radius: 20px 20px 0 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Context menu — fixo centralizado no mobile */
+  #lanc-context-menu {
+    position: fixed !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: 24px !important;
+    top: auto !important;
+    width: 88vw !important;
+    max-width: 340px !important;
+    border-radius: 16px !important;
+    padding: 8px !important;
+  }
+
+  /* Context menu items maiores para toque */
+  .context-menu-item {
+    padding: 14px 16px !important;
+    font-size: 15px !important;
+  }
+
+  /* Usuário na sidebar não cortado */
+  .sidebar__user {
+    padding: 16px !important;
+    margin-bottom: env(safe-area-inset-bottom, 16px) !important;
+  }
+
+  /* Busca em lançamentos — largura total */
+  #lanc-busca {
+    width: 100% !important;
+  }
+
+  /* Grid de data/categoria em coluna única no modal */
+  #modal-lancamento .modal-box > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVIDADE — MOBILE PEQUENO (até 380px)
+═══════════════════════════════════════ */
+@media (max-width: 380px) {
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .kpi-value {
+    font-size: 18px !important;
+  }
+}
+
+.topbar__hamburger {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .topbar__hamburger {
+    display: flex;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main-wrapper {
+    margin-left: 0 !important;
+  }
+}
+

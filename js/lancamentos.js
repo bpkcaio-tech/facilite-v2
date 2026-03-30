@@ -248,29 +248,31 @@ const LancamentosPage = {
     `;
 
     menu.style.display = 'block';
-    menu.style.top = '-9999px';
-    menu.style.left = '-9999px';
+    menu.style.visibility = 'hidden';
 
-    // Calcular posição segura após renderizar
-    requestAnimationFrame(() => {
+    // Usar requestAnimationFrame para garantir que o browser mediu o elemento
+    requestAnimationFrame(function() {
       const rect = event.target.getBoundingClientRect();
-      const menuW = menu.offsetWidth || 180;
       const menuH = menu.offsetHeight || 120;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
+      const menuW = menu.offsetWidth || 180;
+      const viewH = window.innerHeight;
+      const viewW = window.innerWidth;
+      const isMobile = viewW <= 768;
 
-      let top = rect.bottom + 4;
-      let left = rect.left;
+      if (!isMobile) {
+        // Desktop: posicionar perto do botão
+        const openUp = rect.bottom + menuH > viewH - 16;
+        const openLeft = rect.left + menuW > viewW - 16;
+        const top = openUp ? rect.top - menuH - 4 : rect.bottom + 4;
+        const left = openLeft ? rect.right - menuW : rect.left;
+        menu.style.top = Math.max(8, top) + 'px';
+        menu.style.left = Math.max(8, left) + 'px';
+        menu.style.bottom = '';
+        menu.style.transform = '';
+      }
+      // Mobile: o CSS já cuida (position fixed, bottom, centralizado)
 
-      // Não sair pela direita
-      if (left + menuW > vw - 10) left = vw - menuW - 10;
-      // Não sair pela esquerda
-      if (left < 10) left = 10;
-      // Não sair por baixo — abre para cima
-      if (top + menuH > vh - 10) top = rect.top - menuH - 4;
-
-      menu.style.top = top + 'px';
-      menu.style.left = left + 'px';
+      menu.style.visibility = 'visible';
     });
   },
 

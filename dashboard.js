@@ -168,55 +168,33 @@ function initDashboardCharts() {
 
 window.initDashboardCharts = initDashboardCharts;
 
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (!sidebar || !overlay) return;
+  sidebar.classList.toggle('sidebar--open');
+  overlay.classList.toggle('sidebar-overlay--visible');
+  document.body.style.overflow = sidebar.classList.contains('sidebar--open') ? 'hidden' : '';
+}
+
+function fecharSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (!sidebar || !overlay) return;
+  sidebar.classList.remove('sidebar--open');
+  overlay.classList.remove('sidebar-overlay--visible');
+  document.body.style.overflow = '';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initDashboardCharts();
-
-  // ── SIDEBAR TOGGLE (mobile) ──────────────────────
-  const sidebar   = document.getElementById('sidebar');
-  const hamburger = document.getElementById('hamburger');
-
-  // Criar overlay se não existir
-  let overlay = document.querySelector('.sidebar-overlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    document.body.appendChild(overlay);
-  }
-
-  function abrirSidebar() {
-    sidebar?.classList.add('sidebar--open');
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function fecharSidebar() {
-    sidebar?.classList.remove('sidebar--open');
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
-  if (hamburger) {
-    hamburger.addEventListener('click', () => {
-      if (sidebar?.classList.contains('sidebar--open')) fecharSidebar();
-      else abrirSidebar();
-    });
-  }
-
-  overlay.addEventListener('click', fecharSidebar);
-
-  // Fechar sidebar ao clicar em nav item em mobile
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-      if (window.innerWidth <= 1024) fecharSidebar();
-    });
-  });
 
   // ── ACTIVE NAV ───────────────────────────────────
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('nav-item--active'));
       item.classList.add('nav-item--active');
-      if (window.innerWidth <= 1024) closeSidebar();
+      if (window.innerWidth <= 1024) fecharSidebar();
     });
   });
 });
