@@ -247,29 +247,31 @@ const LancamentosPage = {
       <button class="context-menu-item" style="color:#EF4444" onclick="LancamentosPage.remover('${id}')">🗑️ Excluir</button>
     `;
 
-    const rect = event.target.getBoundingClientRect();
     menu.style.display = 'block';
+    menu.style.top = '-9999px';
+    menu.style.left = '-9999px';
 
-    const menuHeight = menu.offsetHeight;
-    const menuWidth = menu.offsetWidth;
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
+    // Calcular posição segura após renderizar
+    requestAnimationFrame(() => {
+      const rect = event.target.getBoundingClientRect();
+      const menuW = menu.offsetWidth || 180;
+      const menuH = menu.offsetHeight || 120;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
 
-    const topBelow = rect.bottom + 4;
-    const topAbove = rect.top - menuHeight - 4;
-    const fitsBelow = topBelow + menuHeight <= viewportHeight - 8;
-    const top = fitsBelow ? topBelow : Math.max(topAbove, 8);
+      let top = rect.bottom + 4;
+      let left = rect.left;
 
-    let left = rect.left;
-    if (left + menuWidth > viewportWidth - 8) {
-      left = Math.max(viewportWidth - menuWidth - 8, 8);
-    }
-    if (left < 8) {
-      left = 8;
-    }
+      // Não sair pela direita
+      if (left + menuW > vw - 10) left = vw - menuW - 10;
+      // Não sair pela esquerda
+      if (left < 10) left = 10;
+      // Não sair por baixo — abre para cima
+      if (top + menuH > vh - 10) top = rect.top - menuH - 4;
 
-    menu.style.top = top + 'px';
-    menu.style.left = left + 'px';
+      menu.style.top = top + 'px';
+      menu.style.left = left + 'px';
+    });
   },
 
   _fecharContextMenu() {

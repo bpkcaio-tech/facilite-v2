@@ -1399,3 +1399,372 @@ select.form-input {
 
 .page-perfil { width: 100%; max-width: 640px; margin: 0 auto; }
 
+/* ══════════════════════════════════════════
+   RESPONSIVIDADE — FIXES GLOBAIS
+   ══════════════════════════════════════════ */
+
+/* Evitar overflow horizontal em qualquer elemento */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* App layout base */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Main wrapper nunca ultrapassa a tela */
+.main-wrapper {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Dashboard content padding seguro */
+.dashboard {
+  padding: 20px;
+  min-height: calc(100vh - 64px);
+  overflow-x: hidden;
+}
+
+/* ══════ SIDEBAR ══════ */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 100;
+}
+
+/* Sidebar user — nunca corta */
+.sidebar__user {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.sidebar__user-name,
+.sidebar__user-role {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+  display: block;
+}
+
+/* ══════ MODAIS ══════ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.modal-overlay.modal--open {
+  display: flex;
+}
+
+.modal-box {
+  background: #0F1A12;
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ══════ CONTEXT MENU ══════ */
+.context-menu {
+  position: fixed !important;
+  z-index: 99999;
+  max-width: calc(100vw - 20px);
+}
+
+/* ══════ KPI GRID ══════ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ══════ CHART SECTION ══════ */
+.chart-section {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ══════ CARDS TX GRID ══════ */
+.cards-tx-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ══════ SUBS BILLS GRID ══════ */
+.subs-bills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ══════════════════════════════════════════
+   TABLET (768px - 1024px)
+   ══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+  }
+
+  .sidebar.sidebar--open {
+    transform: translateX(0);
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-section {
+    grid-template-columns: 1fr;
+  }
+
+  .cards-tx-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subs-bills-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar__hamburger {
+    display: flex !important;
+  }
+}
+
+/* ══════════════════════════════════════════
+   MOBILE (até 768px)
+   ══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 12px;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .kpi-card {
+    padding: 14px;
+  }
+
+  .kpi-value {
+    font-size: 20px !important;
+  }
+
+  .chart-section {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .cards-tx-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .subs-bills-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Modal fullscreen em mobile */
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-start;
+  }
+
+  .modal-box {
+    max-width: 100%;
+    padding: 18px;
+    margin-top: 10px;
+    max-height: calc(100vh - 20px);
+  }
+
+  /* Topbar compacta */
+  .topbar {
+    padding: 0 12px;
+  }
+
+  .topbar__title {
+    font-size: 16px !important;
+  }
+
+  .topbar__subtitle {
+    display: none;
+  }
+
+  /* Lançamentos — tabs scroll horizontal */
+  .lanc-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+  }
+
+  .lanc-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lanc-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Busca full width em mobile */
+  #lanc-busca {
+    width: 100% !important;
+  }
+
+  /* Context menu mobile */
+  .context-menu {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    min-width: 200px;
+  }
+
+  /* Formulário de lançamento */
+  .modal-box [style*="grid-template-columns: 1fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* Botões do modal full width */
+  .modal-box [style*="display:flex;gap:10px;margin-top"] {
+    flex-direction: column;
+  }
+
+  .btn-modal-cancel,
+  .btn-modal-save {
+    width: 100%;
+    padding: 13px !important;
+  }
+
+  /* Sidebar overlay */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  /* Summary card */
+  .summary-card {
+    order: -1;
+  }
+
+  /* KPI footer esconde sparkline em mobile */
+  .sparkline {
+    display: none;
+  }
+
+  /* Seção de lançamentos — row */
+  .lanc-row {
+    padding: 12px 8px;
+    gap: 8px;
+  }
+
+  .lanc-valor {
+    font-size: 13px;
+  }
+
+  /* Página de perfil */
+  .perfil-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ══════════════════════════════════════════
+   MOBILE PEQUENO (até 480px)
+   ══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .kpi-card {
+    padding: 12px;
+  }
+
+  .kpi-value {
+    font-size: 17px !important;
+  }
+
+  .label {
+    font-size: 10px !important;
+  }
+
+  .dashboard {
+    padding: 8px;
+  }
+
+  /* Banner upgrade compacto */
+  #banner-upgrade > div {
+    flex-direction: column !important;
+    text-align: center;
+    gap: 8px !important;
+  }
+}
+
+.perfil-container {
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .perfil-container {
+    padding: 12px;
+  }
+}
+

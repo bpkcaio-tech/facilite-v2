@@ -172,27 +172,44 @@ document.addEventListener('DOMContentLoaded', () => {
   initDashboardCharts();
 
   // ── SIDEBAR TOGGLE (mobile) ──────────────────────
-  const sidebar  = document.getElementById('sidebar');
+  const sidebar   = document.getElementById('sidebar');
   const hamburger = document.getElementById('hamburger');
 
-  const overlay = document.createElement('div');
-  overlay.className = 'sidebar-overlay';
-  document.body.appendChild(overlay);
+  // Criar overlay se não existir
+  let overlay = document.querySelector('.sidebar-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+  }
 
-  function openSidebar() {
-    sidebar.classList.add('sidebar--open');
+  function abrirSidebar() {
+    sidebar?.classList.add('sidebar--open');
     overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
 
-  function closeSidebar() {
-    sidebar.classList.remove('sidebar--open');
+  function fecharSidebar() {
+    sidebar?.classList.remove('sidebar--open');
     overlay.classList.remove('active');
     document.body.style.overflow = '';
   }
 
-  if (hamburger) hamburger.addEventListener('click', openSidebar);
-  overlay.addEventListener('click', closeSidebar);
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      if (sidebar?.classList.contains('sidebar--open')) fecharSidebar();
+      else abrirSidebar();
+    });
+  }
+
+  overlay.addEventListener('click', fecharSidebar);
+
+  // Fechar sidebar ao clicar em nav item em mobile
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 1024) fecharSidebar();
+    });
+  });
 
   // ── ACTIVE NAV ───────────────────────────────────
   document.querySelectorAll('.nav-item').forEach(item => {
