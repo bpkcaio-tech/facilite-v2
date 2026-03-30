@@ -379,7 +379,7 @@
 
 <!-- Sync automático -->
 <script>
-  // Boot: espera usuário estar logado e puxa Supabase
+  // Boot: espera usuário logado e faz primeiro sync
   (function tentarSync() {
     if (window.FaciliteSync && FaciliteSync._userId && FaciliteSync._userId()) {
       FaciliteSync.carregarTudo(true);
@@ -388,26 +388,13 @@
     }
   })();
 
-  // Sync ao voltar para a aba ou app
-  document.addEventListener('visibilitychange', function() {
-    if (!document.hidden && window.FaciliteSync) {
-      FaciliteSync.carregarTudo(true);
-    }
-  });
-
-  // Sync ao focar a janela
-  window.addEventListener('focus', function() {
-    if (window.FaciliteSync) {
-      FaciliteSync.carregarTudo(true);
-    }
-  });
-
-  // Sync a cada 20 segundos
+  // Sync periódico a cada 30 segundos — SEM listeners de focus ou visibilitychange
+  // (esses listeners causam sync no momento errado durante exclusões)
   setInterval(function() {
-    if (window.FaciliteSync && !document.hidden) {
+    if (window.FaciliteSync && !document.hidden && !FaciliteSync._operacaoEmAndamento) {
       FaciliteSync.carregarTudo(true);
     }
-  }, 20000);
+  }, 30000);
 </script>
 
 <!-- Verificação de plano — roda DEPOIS de todos os scripts -->

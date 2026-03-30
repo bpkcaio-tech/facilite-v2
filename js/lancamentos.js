@@ -816,11 +816,14 @@ const LancamentosPage = {
     this.abrirModal(id);
   },
 
-  async remover(id) {
+  remover: async function(id) {
     this._fecharContextMenu();
     var todos = FaciliteStorage.get('lancamentos') || [];
     var l = todos.find(function(x) { return x.id === id; });
     if (!l) return;
+
+    // Capturar scroll antes do confirm (o confirm causa blur/focus na janela)
+    var scrollAntes = window.scrollY || 0;
 
     var confirmar = false;
     var excluirTodos = false;
@@ -835,41 +838,49 @@ const LancamentosPage = {
 
     if (!confirmar && !l.recorrente) return;
 
-    if (excluirTodos) {
-      var paraExcluir = todos.filter(function(x) {
-        return x.descricao === l.descricao && x.recorrente;
-      });
-      var idsParaExcluir = paraExcluir.map(function(x) { return x.id; });
+    // Marcar operação em andamento IMEDIATAMENTE após confirmação
+    // Isso impede qualquer sync automático durante a exclusão
+    if (window.FaciliteSync) FaciliteSync._operacaoEmAndamento = true;
 
-      // Remover do localStorage
-      FaciliteStorage.set('lancamentos', todos.filter(function(x) {
-        return !(x.descricao === l.descricao && x.recorrente);
-      }));
+    try {
+      if (excluirTodos) {
+        var paraExcluir = todos.filter(function(x) {
+          return x.descricao === l.descricao && x.recorrente;
+        });
+        var idsParaExcluir = paraExcluir.map(function(x) { return x.id; });
 
-      // Excluir no Supabase (registrarExclusao já é chamado dentro de excluirLancamento)
-      if (window.FaciliteSync) {
-        for (var i = 0; i < idsParaExcluir.length; i++) {
-          await FaciliteSync.excluirLancamento(idsParaExcluir[i]);
+        FaciliteStorage.set('lancamentos', todos.filter(function(x) {
+          return !(x.descricao === l.descricao && x.recorrente);
+        }));
+
+        if (window.FaciliteSync) {
+          for (var i = 0; i < idsParaExcluir.length; i++) {
+            await FaciliteSync.excluirLancamento(idsParaExcluir[i]);
+          }
+        }
+
+      } else {
+        FaciliteStorage.removeLancamento(id);
+
+        if (window.FaciliteSync) {
+          await FaciliteSync.excluirLancamento(id);
         }
       }
 
-    } else {
-      // Remover do localStorage
-      FaciliteStorage.removeLancamento(id);
+      // Render preservando scroll
+      this.render();
+      FaciliteState.refresh();
+      requestAnimationFrame(function() { window.scrollTo(0, scrollAntes); });
+      FaciliteNotify.success('Lançamento removido.');
 
-      // Excluir no Supabase (registrarExclusao já é chamado dentro de excluirLancamento)
+    } finally {
+      // Liberar operação após tudo concluído
       if (window.FaciliteSync) {
-        await FaciliteSync.excluirLancamento(id);
+        setTimeout(function() {
+          FaciliteSync._operacaoEmAndamento = false;
+        }, 1000);
       }
     }
-
-    // Render sem pular para o topo
-    var scrollAntes = window.scrollY || 0;
-    this.render();
-    FaciliteState.refresh();
-    requestAnimationFrame(function() { window.scrollTo(0, scrollAntes); });
-
-    FaciliteNotify.success('Lançamento removido.');
   },
 
 };

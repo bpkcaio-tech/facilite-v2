@@ -27,6 +27,8 @@ window.FaciliteSync = {
 
   _carregando: false,
   _refreshTimer: null,
+  _operacaoEmAndamento: false,  // <- ADICIONAR ESTA LINHA
+  _idsExcluidos: [],
 
   // ── Headers padrão ─────────────────────────────
   _h: function() {
@@ -75,11 +77,11 @@ window.FaciliteSync = {
     var uid = this._userId();
     if (!uid) return;
     if (this._carregando && !forcar) return;
-    if (this._bloqueioSync && !forcar) return;
+    // Nunca sincronizar durante uma operação de escrita/exclusão
+    if (this._operacaoEmAndamento) return;
     this._carregando = true;
 
     try {
-      // Buscar lançamentos
       var rLanc = await fetch(
         SUPABASE_URL + '/rest/v1/lancamentos?user_id=eq.' + uid + '&order=data.desc&limit=1000',
         { headers: this._h() }
@@ -88,23 +90,27 @@ window.FaciliteSync = {
       if (rLanc.ok) {
         var dados = await rLanc.json();
         if (Array.isArray(dados)) {
-          // Filtrar IDs que foram excluídos localmente mas ainda não sumiram do servidor
+          // Filtrar IDs da lista negra (excluídos localmente mas ainda não processados pelo Supabase)
+          var idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
           var dadosFiltrados = dados.filter(function(l) {
-            return !_idsExcluidos.includes(l.id);
+            return !idsExcluidos.includes(l.id);
           });
 
-          // Limpar da lista negra IDs que já sumiram do servidor de verdade
+          // Limpar da lista negra IDs que o Supabase já não retorna mais
           var idsServidor = dados.map(function(l) { return l.id; });
-          limparExcluidos(idsServidor);
+          var listaLimpa = idsExcluidos.filter(function(id) {
+            return idsServidor.includes(id);
+          });
+          localStorage.setItem('facilite_ids_excluidos', JSON.stringify(listaLimpa));
 
           if (window.FaciliteStorage) {
             FaciliteStorage.set('lancamentos', dadosFiltrados);
           }
-          console.log('[Sync] ' + dadosFiltrados.length + ' lancamentos (filtrados ' + _idsExcluidos.length + ' excluidos)');
+
+          console.log('[Sync] ' + dadosFiltrados.length + ' lancamentos carregados');
         }
       }
 
-      // Buscar receita
       var rRec = await fetch(
         SUPABASE_URL + '/rest/v1/receitas?user_id=eq.' + uid + '&order=ano.desc,mes.desc&limit=1',
         { headers: this._h() }
@@ -182,28 +188,33 @@ window.FaciliteSync = {
     var uid = this._userId();
     if (!uid) return false;
 
-    // Registrar exclusão IMEDIATAMENTE para que o próximo sync não traga de volta
-    registrarExclusao(id);
+    // Registrar na lista negra IMEDIATAMENTE
+    var idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
+    if (!idsExcluidos.includes(id)) {
+      idsExcluidos.push(id);
+      localStorage.setItem('facilite_ids_excluidos', JSON.stringify(idsExcluidos));
+    }
 
     try {
       var r = await fetch(
         SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id + '&user_id=eq.' + uid,
-        {
-          method: 'DELETE',
-          headers: this._h()
-        }
+        { method: 'DELETE', headers: this._h() }
       );
 
-      if (!r.ok) {
+      if (r.ok) {
+        console.log('[Sync] Excluido com sucesso:', id);
+        // Remover da lista negra pois já foi excluído do Supabase
+        var lista = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
+        localStorage.setItem('facilite_ids_excluidos', JSON.stringify(
+          lista.filter(function(x) { return x !== id; })
+        ));
+      } else {
         console.warn('[Sync] Erro ao excluir:', r.status);
-        return false;
       }
 
-      console.log('[Sync] Lancamento excluido do Supabase:', id);
-      return true;
-
+      return r.ok;
     } catch(e) {
-      console.warn('[Sync] Erro ao excluir:', e.message);
+      console.warn('[Sync] Erro excluir:', e.message);
       return false;
     }
   },
@@ -302,3 +313,6 @@ window.FaciliteSync = {
   }
 
 };
+
+  // Inicializar lista negra de IDs excluídos
+  window.FaciliteSync._idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
