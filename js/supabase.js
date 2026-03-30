@@ -5,6 +5,24 @@
 var SUPABASE_URL = 'https://ugoozmapozlwtijaveru.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnb296bWFwb3psd3RpamF2ZXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MjIzMzgsImV4cCI6MjA5MDM5ODMzOH0.BZtq3wxBMIOhJ3iAqgPxN96PNxyKAj9R73_LvC25cek';
 
+// Lista de IDs excluídos localmente — impede que o sync traga de volta
+var _idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
+
+function registrarExclusao(id) {
+  if (!_idsExcluidos.includes(id)) {
+    _idsExcluidos.push(id);
+    localStorage.setItem('facilite_ids_excluidos', JSON.stringify(_idsExcluidos));
+  }
+}
+
+function limparExcluidos(idsDoServidor) {
+  // Remove da lista negra IDs que já não existem mais no servidor
+  _idsExcluidos = _idsExcluidos.filter(function(id) {
+    return idsDoServidor.includes(id);
+  });
+  localStorage.setItem('facilite_ids_excluidos', JSON.stringify(_idsExcluidos));
+}
+
 window.FaciliteSync = {
 
   _carregando: false,
@@ -33,8 +51,6 @@ window.FaciliteSync = {
     if (this._refreshTimer) clearTimeout(this._refreshTimer);
     this._refreshTimer = setTimeout(function() {
       var scrollY = window.scrollY || window.pageYOffset || 0;
-      var mainEl = document.querySelector('.dashboard');
-      var mainScroll = mainEl ? mainEl.scrollTop : 0;
 
       if (typeof window.atualizarCards === 'function') window.atualizarCards();
       if (typeof FaciliteState !== 'undefined') FaciliteState.refresh();
@@ -48,7 +64,6 @@ window.FaciliteSync = {
 
       requestAnimationFrame(function() {
         window.scrollTo(0, scrollY);
-        if (mainEl) mainEl.scrollTop = mainScroll;
       });
     }, 200);
   },
@@ -73,10 +88,19 @@ window.FaciliteSync = {
       if (rLanc.ok) {
         var dados = await rLanc.json();
         if (Array.isArray(dados)) {
+          // Filtrar IDs que foram excluídos localmente mas ainda não sumiram do servidor
+          var dadosFiltrados = dados.filter(function(l) {
+            return !_idsExcluidos.includes(l.id);
+          });
+
+          // Limpar da lista negra IDs que já sumiram do servidor de verdade
+          var idsServidor = dados.map(function(l) { return l.id; });
+          limparExcluidos(idsServidor);
+
           if (window.FaciliteStorage) {
-            FaciliteStorage.set('lancamentos', dados);
+            FaciliteStorage.set('lancamentos', dadosFiltrados);
           }
-          console.log('[Sync] ' + dados.length + ' lancamentos carregados do Supabase');
+          console.log('[Sync] ' + dadosFiltrados.length + ' lancamentos (filtrados ' + _idsExcluidos.length + ' excluidos)');
         }
       }
 
@@ -157,6 +181,9 @@ window.FaciliteSync = {
     if (!id) return false;
     var uid = this._userId();
     if (!uid) return false;
+
+    // Registrar exclusão IMEDIATAMENTE para que o próximo sync não traga de volta
+    registrarExclusao(id);
 
     try {
       var r = await fetch(

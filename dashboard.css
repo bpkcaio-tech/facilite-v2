@@ -1950,3 +1950,26 @@ html, body {
   }
 }
 
+/* Receita mensal fixa — responsivo */
+@media (max-width: 768px) {
+  /* Card de receita fixa em coluna no mobile */
+  .card[style*="display:flex"][style*="justify-content:space-between"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  /* Valor e botão Alterar lado a lado no mobile */
+  #receita-fixa-valor {
+    font-size: 20px !important;
+  }
+
+  /* Garantir que o card de receita não seja cortado */
+  .page-lancamentos > .card:first-of-type {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    padding: 14px !important;
+  }
+}
+

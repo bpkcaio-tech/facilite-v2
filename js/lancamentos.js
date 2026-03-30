@@ -127,7 +127,7 @@ const LancamentosPage = {
 
   // ── Renderizar lista agrupada por data ─────────────
   render() {
-    var scrollAntes = window.scrollY || window.pageYOffset || 0;
+    var _scrollY = window.scrollY || window.pageYOffset || 0;
     var listaEl = document.getElementById('lista-lancamentos');
     var listaScroll = listaEl ? listaEl.scrollTop : 0;
 
@@ -199,10 +199,11 @@ const LancamentosPage = {
     if (elCnt) elCnt.textContent = todos.length;
 
     requestAnimationFrame(function() {
-      window.scrollTo(0, scrollAntes);
+      window.scrollTo(0, _scrollY);
       if (listaEl) listaEl.scrollTop = listaScroll;
     });
   },
+
 
   _renderRow(l) {
     const icone = this.ICONES[l.categoria] || '📦';
@@ -834,24 +835,18 @@ const LancamentosPage = {
 
     if (!confirmar && !l.recorrente) return;
 
-    if (window.FaciliteSync) {
-      FaciliteSync._bloqueioSync = true;
-      setTimeout(function() {
-        FaciliteSync._bloqueioSync = false;
-        FaciliteSync.carregarTudo(true);
-      }, 4000);
-    }
-
     if (excluirTodos) {
       var paraExcluir = todos.filter(function(x) {
         return x.descricao === l.descricao && x.recorrente;
       });
       var idsParaExcluir = paraExcluir.map(function(x) { return x.id; });
 
+      // Remover do localStorage
       FaciliteStorage.set('lancamentos', todos.filter(function(x) {
         return !(x.descricao === l.descricao && x.recorrente);
       }));
 
+      // Excluir no Supabase (registrarExclusao já é chamado dentro de excluirLancamento)
       if (window.FaciliteSync) {
         for (var i = 0; i < idsParaExcluir.length; i++) {
           await FaciliteSync.excluirLancamento(idsParaExcluir[i]);
@@ -859,17 +854,24 @@ const LancamentosPage = {
       }
 
     } else {
+      // Remover do localStorage
       FaciliteStorage.removeLancamento(id);
 
+      // Excluir no Supabase (registrarExclusao já é chamado dentro de excluirLancamento)
       if (window.FaciliteSync) {
         await FaciliteSync.excluirLancamento(id);
       }
     }
 
+    // Render sem pular para o topo
+    var scrollAntes = window.scrollY || 0;
     this.render();
     FaciliteState.refresh();
+    requestAnimationFrame(function() { window.scrollTo(0, scrollAntes); });
+
     FaciliteNotify.success('Lançamento removido.');
   },
+
 };
 
 // ── Event listeners ──────────────────────────────────
