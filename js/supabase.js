@@ -80,21 +80,31 @@ window.FaciliteSync = {
     this._carregando = true;
 
     try {
-      var r = await fetch(
+      // Buscar lançamentos do servidor
+      var rLanc = await fetch(
         SUPABASE_URL + '/rest/v1/lancamentos?user_id=eq.' + uid + '&order=data.desc&limit=500',
         { headers: this._h() }
       );
 
-      if (!r.ok) { this._carregando = false; return; }
-      var lancamentosServidor = await r.json();
+      if (rLanc.ok) {
+        var lancamentosServidor = await rLanc.json();
 
-      if (Array.isArray(lancamentosServidor) && lancamentosServidor.length > 0) {
-        var local = window.FaciliteStorage ? (FaciliteStorage.get('lancamentos') || []) : [];
-        var idsServidor = {};
-        lancamentosServidor.forEach(function(l) { idsServidor[l.id] = true; });
-        var somenteLocal = local.filter(function(l) { return !idsServidor[l.id]; });
-        var merged = lancamentosServidor.concat(somenteLocal);
-        if (window.FaciliteStorage) FaciliteStorage.set('lancamentos', merged);
+        if (Array.isArray(lancamentosServidor)) {
+          if (lancamentosServidor.length > 0) {
+            var local = window.FaciliteStorage ? (FaciliteStorage.get('lancamentos') || []) : [];
+            var idsServidor = {};
+            lancamentosServidor.forEach(function(l) { idsServidor[l.id] = true; });
+            var somenteLocal = local.filter(function(l) {
+              return !idsServidor[l.id] && l._pendente === true;
+            });
+
+            var merged = lancamentosServidor.concat(somenteLocal);
+            if (window.FaciliteStorage) FaciliteStorage.set('lancamentos', merged);
+            console.log('[Supabase] ' + lancamentosServidor.length + ' lancamentos do servidor');
+          } else {
+            console.log('[Supabase] Nenhum lancamento no servidor ainda');
+          }
+        }
       }
 
       var rRec = await fetch(
@@ -113,13 +123,8 @@ window.FaciliteSync = {
         }
       }
 
-      if (typeof window.atualizarCards === 'function') window.atualizarCards();
-      if (typeof FaciliteState !== 'undefined') FaciliteState.refresh();
-      if (typeof LancamentosPage !== 'undefined' && window.FaciliteRouter && FaciliteRouter.currentPage === 'lancamentos') {
-        LancamentosPage.render();
-      }
-
-      console.log('[Supabase] Sync concluido — ' + (lancamentosServidor ? lancamentosServidor.length : 0) + ' lancamentos');
+      this._refreshUI();
+      console.log('[Supabase] Sync concluido');
 
     } catch(e) {
       console.warn('[Supabase] Erro sync:', e.message);
@@ -128,12 +133,32 @@ window.FaciliteSync = {
     }
   },
 
+  _refreshUI: function() {
+    if (this._refreshTimer) clearTimeout(this._refreshTimer);
+    this._refreshTimer = setTimeout(function() {
+      if (typeof window.atualizarCards === 'function') window.atualizarCards();
+      if (typeof FaciliteState !== 'undefined') FaciliteState.refresh();
+      if (
+        typeof LancamentosPage !== 'undefined' &&
+        window.FaciliteRouter &&
+        FaciliteRouter.currentPage === 'lancamentos'
+      ) {
+        LancamentosPage.render();
+      }
+    }, 150);
+  },
+
   excluirLancamento: async function(id) {
+    if (!id) return;
     try {
-      await fetch(SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id, {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id, {
         method: 'DELETE',
         headers: this._h()
       });
-    } catch(e) { console.warn('[Supabase] Erro excluir:', e.message); }
+      if (!r.ok) console.warn('[Supabase] Erro ao excluir:', r.status);
+      else console.log('[Supabase] Lancamento excluido:', id);
+    } catch(e) {
+      console.warn('[Supabase] Erro excluir:', e.message);
+    }
   }
 };
