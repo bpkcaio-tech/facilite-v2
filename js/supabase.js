@@ -32,6 +32,10 @@ window.FaciliteSync = {
   _refreshUI: function() {
     if (this._refreshTimer) clearTimeout(this._refreshTimer);
     this._refreshTimer = setTimeout(function() {
+      var scrollY = window.scrollY || window.pageYOffset || 0;
+      var mainEl = document.querySelector('.dashboard');
+      var mainScroll = mainEl ? mainEl.scrollTop : 0;
+
       if (typeof window.atualizarCards === 'function') window.atualizarCards();
       if (typeof FaciliteState !== 'undefined') FaciliteState.refresh();
       if (
@@ -41,6 +45,11 @@ window.FaciliteSync = {
       ) {
         LancamentosPage.render();
       }
+
+      requestAnimationFrame(function() {
+        window.scrollTo(0, scrollY);
+        if (mainEl) mainEl.scrollTop = mainScroll;
+      });
     }, 200);
   },
 
@@ -51,6 +60,7 @@ window.FaciliteSync = {
     var uid = this._userId();
     if (!uid) return;
     if (this._carregando && !forcar) return;
+    if (this._bloqueioSync && !forcar) return;
     this._carregando = true;
 
     try {

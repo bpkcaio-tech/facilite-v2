@@ -24,6 +24,7 @@ const ChartsUpdate = {
   },
 
   atualizarCards() {
+    var _scrollY = window.scrollY || window.pageYOffset || 0;
     const mes  = FaciliteState.mesAtual;
     const ano  = FaciliteState.anoAtual;
     const totais = FaciliteStorage.getTotaisMes(mes, ano);
@@ -90,6 +91,8 @@ const ChartsUpdate = {
 
     // Sincronizar FACILITE_DATA para o chatbot
     this._syncFaciliteData(totais, saldoTotal);
+
+    requestAnimationFrame(function() { window.scrollTo(0, _scrollY); });
   },
 
   _animarValor(el, valorFinal, ehDespesa = false) {

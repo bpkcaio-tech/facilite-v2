@@ -127,6 +127,10 @@ const LancamentosPage = {
 
   // ── Renderizar lista agrupada por data ─────────────
   render() {
+    var scrollAntes = window.scrollY || window.pageYOffset || 0;
+    var listaEl = document.getElementById('lista-lancamentos');
+    var listaScroll = listaEl ? listaEl.scrollTop : 0;
+
     const mes = FaciliteState.mesAtual;
     const ano = FaciliteState.anoAtual;
     const todos = FaciliteStorage.getLancamentosMes(mes, ano);
@@ -193,6 +197,11 @@ const LancamentosPage = {
     if (elRec) elRec.textContent = fmtBRL(receitas);
     if (elDes) elDes.textContent = fmtBRL(despesas);
     if (elCnt) elCnt.textContent = todos.length;
+
+    requestAnimationFrame(function() {
+      window.scrollTo(0, scrollAntes);
+      if (listaEl) listaEl.scrollTop = listaScroll;
+    });
   },
 
   _renderRow(l) {
@@ -825,6 +834,14 @@ const LancamentosPage = {
 
     if (!confirmar && !l.recorrente) return;
 
+    if (window.FaciliteSync) {
+      FaciliteSync._bloqueioSync = true;
+      setTimeout(function() {
+        FaciliteSync._bloqueioSync = false;
+        FaciliteSync.carregarTudo(true);
+      }, 4000);
+    }
+
     if (excluirTodos) {
       var paraExcluir = todos.filter(function(x) {
         return x.descricao === l.descricao && x.recorrente;
@@ -836,9 +853,9 @@ const LancamentosPage = {
       }));
 
       if (window.FaciliteSync) {
-        idsParaExcluir.forEach(function(rid) {
-          FaciliteSync.excluirLancamento(rid);
-        });
+        for (var i = 0; i < idsParaExcluir.length; i++) {
+          await FaciliteSync.excluirLancamento(idsParaExcluir[i]);
+        }
       }
 
     } else {
