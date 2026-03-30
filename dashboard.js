@@ -5,7 +5,10 @@
 // ── DATA E HORA NO TOPBAR ─────────────────────────
 function atualizarDataTopbar() {
   const agora = new Date();
-  const opcoes = { weekday:'long', day:'2-digit', month:'long', year:'numeric' };
+  const mobile = window.innerWidth <= 600;
+  const opcoes = mobile
+    ? { day:'2-digit', month:'short' }
+    : { weekday:'long', day:'2-digit', month:'long', year:'numeric' };
   const dataFormatada = agora.toLocaleDateString('pt-BR', opcoes);
   const texto = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
   const elData = document.getElementById('data-topbar');
@@ -115,10 +118,12 @@ function initDashboardCharts() {
           },
           y: {
             grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+            beginAtZero: true,
             ticks: {
               color: '#6B7280',
               font: { family: 'DM Sans', size: 11 },
-              callback: v => 'R$ ' + (v / 1000).toFixed(0) + 'k',
+              maxTicksLimit: 5,
+              callback: v => v === 0 ? 'R$ 0' : 'R$ ' + (v / 1000).toFixed(0) + 'k',
             },
             border: { display: false },
           },

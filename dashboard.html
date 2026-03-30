@@ -347,6 +347,11 @@
   </div>
 </div>
 
+<!-- Supabase SDK + Config -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/supabase-sync.js"></script>
+
 <!-- Core modules -->
 <script src="js/storage.js"></script>
 <script src="js/state.js"></script>
@@ -372,6 +377,15 @@
 
 <!-- Chatbot desativado -->
 <!-- <script src="chatbot.js"></script> -->
+
+<!-- Sync bootstrap: sincronizar dados na nuvem ao abrir -->
+<script>
+  if (window.FaciliteSync && window.FaciliteDB) {
+    FaciliteSync.init().then(function() {
+      if (window.FaciliteState) FaciliteState.emit('dados-changed');
+    }).catch(function(e) { console.warn('[Boot] Sync:', e); });
+  }
+</script>
 
 <!-- Verificação de plano — roda DEPOIS de todos os scripts -->
 <script>

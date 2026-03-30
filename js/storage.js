@@ -55,6 +55,12 @@ const FaciliteStorage = {
     try {
       localStorage.setItem(this.PREFIX + chave, JSON.stringify(valor));
       window.dispatchEvent(new CustomEvent('facilite:update', { detail: { chave, valor } }));
+      // Sincronizar com nuvem (fire-and-forget)
+      if (window.FaciliteSync && FaciliteSync.ready) {
+        FaciliteSync.pushKey(chave, valor).catch(function(e) {
+          console.warn('[Storage] sync falhou:', e);
+        });
+      }
     } catch (e) { console.error('[Storage] Erro:', e); }
   },
 

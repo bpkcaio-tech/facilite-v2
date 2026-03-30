@@ -83,8 +83,8 @@ function submitLogin(e) {
   btn.classList.add('loading');
   btn.disabled = true;
 
-  setTimeout(() => {
-    const resultado = FaciliteAuth.login(email, senha);
+  setTimeout(async () => {
+    const resultado = await FaciliteAuth.login(email, senha);
     btn.classList.remove('loading');
     btn.disabled = false;
 
@@ -125,8 +125,8 @@ function submitCadastro(e) {
   btn.classList.add('loading');
   btn.disabled = true;
 
-  setTimeout(() => {
-    const resultado = FaciliteAuth.cadastrar({ nome, email, senha });
+  setTimeout(async () => {
+    const resultado = await FaciliteAuth.cadastrar({ nome, email, senha });
     btn.classList.remove('loading');
     btn.disabled = false;
 
@@ -295,7 +295,7 @@ function hashSenha(senha) {
 
 // ── FACILITEAUTH — Objeto Global ───────────────────
 window.FaciliteAuth = {
-  cadastrar({ nome, email, senha }) {
+  async cadastrar({ nome, email, senha }) {
     const usuarios = JSON.parse(localStorage.getItem('facilite_usuarios') || '[]');
     if (usuarios.find(u => u.email === email)) {
       return { sucesso: false, erro: 'Este email já está cadastrado. Faça login.' };
@@ -307,16 +307,29 @@ window.FaciliteAuth = {
     usuarios.push(novoUsuario);
     localStorage.setItem('facilite_usuarios', JSON.stringify(usuarios));
     this.salvarSessao(novoUsuario);
+
+    // Criar conta no Supabase (para sincronização)
+    if (window.FaciliteSync) {
+      await FaciliteSync.signUp(email, senha).catch(function(e) { console.warn('[Auth] Supabase signUp:', e); });
+    }
+
     return { sucesso: true };
   },
 
-  login(email, senha) {
+  async login(email, senha) {
     const usuarios = JSON.parse(localStorage.getItem('facilite_usuarios') || '[]');
     const usuario = usuarios.find(u => u.email === email);
     if (!usuario) return { sucesso: false, erro: 'Email não encontrado. Crie uma conta.' };
     if (usuario.provider !== 'email') return { sucesso: false, erro: 'Esta conta usa login com ' + usuario.provider + '. Use o botão correspondente.' };
     if (usuario.senha !== hashSenha(senha)) return { sucesso: false, erro: 'Senha incorreta. Tente novamente.' };
     this.salvarSessao(usuario);
+
+    // Login no Supabase + sincronizar dados
+    if (window.FaciliteSync) {
+      await FaciliteSync.signIn(email, senha).catch(function(e) { console.warn('[Auth] Supabase signIn:', e); });
+      await FaciliteSync.init().catch(function(e) { console.warn('[Auth] Sync init:', e); });
+    }
+
     return { sucesso: true };
   },
 
@@ -361,6 +374,7 @@ window.FaciliteAuth = {
   },
 
   logout() {
+    if (window.FaciliteSync) FaciliteSync.signOut().catch(function(){});
     localStorage.removeItem('facilite_sessao');
     window.location.href = 'auth.html';
   }
