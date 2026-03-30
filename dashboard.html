@@ -347,10 +347,8 @@
   </div>
 </div>
 
-<!-- Supabase SDK + Config -->
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/supabase-config.js"></script>
-<script src="js/supabase-sync.js"></script>
+<!-- Supabase (REST direto, sem SDK) -->
+<script src="js/supabase.js"></script>
 
 <!-- Core modules -->
 <script src="js/storage.js"></script>
@@ -378,12 +376,13 @@
 <!-- Chatbot desativado -->
 <!-- <script src="chatbot.js"></script> -->
 
-<!-- Sync bootstrap: sincronizar dados na nuvem ao abrir -->
+<!-- Sync bootstrap -->
 <script>
-  if (window.FaciliteSync && window.FaciliteDB) {
-    FaciliteSync.init().then(function() {
-      if (window.FaciliteState) FaciliteState.emit('dados-changed');
-    }).catch(function(e) { console.warn('[Boot] Sync:', e); });
+  setTimeout(function() {
+    if (window.FaciliteSync) {
+      FaciliteSync.carregarTudo();
+    }
+  }, 2000);
   }
 </script>
 

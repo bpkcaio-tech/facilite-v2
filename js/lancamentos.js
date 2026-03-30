@@ -49,7 +49,7 @@ const LancamentosPage = {
     document.getElementById('receita-fixa-nome').value = receita?.nomeReceita || 'Salário';
     document.getElementById('receita-fixa-dia').value = receita?.diaRecebimento || 5;
     modal.style.display = 'flex';
-    modal.onclick = function(e) { if (e.target === modal) modal.style.display = 'none'; };
+    modal.onclick = function(e) { if (e.target === modal) { modal.style.display = 'none'; } };
     setTimeout(function() { document.getElementById('receita-fixa-input')?.focus(); }, 100);
   },
 
@@ -90,7 +90,8 @@ const LancamentosPage = {
       });
     }
 
-    document.getElementById('modal-receita-fixa').style.display = 'none';
+    var mrf = document.getElementById('modal-receita-fixa');
+    if (mrf) { mrf.style.display = 'none'; }
     this._renderReceitaFixa();
     this.render();
     FaciliteState.refresh();
@@ -321,8 +322,11 @@ const LancamentosPage = {
 
   fecharModal() {
     const modal = document.getElementById('modal-lancamento');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+      modal.style.display = 'none';
+    }
     this.editandoId = null;
+    this._salvando = false;
     this._fecharDatePicker();
   },
 
@@ -620,6 +624,11 @@ const LancamentosPage = {
       FacilitePaywall.abrir('Para adicionar lançamentos, assine o Facilite Premium.');
       return;
     }
+    if (this._salvando) return;
+    this._salvando = true;
+    var self = this;
+    setTimeout(function() { self._salvando = false; }, 2000);
+
     const descricao  = document.getElementById('lanc-descricao')?.value?.trim();
     const valorRaw   = parseValorBRL(document.getElementById('lanc-valor')?.value);
     const categoria  = document.getElementById('lanc-categoria')?.value;
@@ -630,13 +639,23 @@ const LancamentosPage = {
     const diaVenc    = parseInt(document.getElementById('lanc-dia-venc')?.value) || null;
     const duracao    = parseInt(document.getElementById('lanc-duracao')?.value) || 0;
 
-    if (!descricao) { FaciliteNotify.warning('Informe a descrição.'); return; }
-    if (!valorRaw || valorRaw <= 0) { FaciliteNotify.warning('Informe um valor válido.'); return; }
+    if (!descricao) {
+      FaciliteNotify.warning('Informe a descrição.');
+      this._salvando = false;
+      return;
+    }
+    if (!valorRaw || valorRaw <= 0) {
+      FaciliteNotify.warning('Informe um valor válido.');
+      this._salvando = false;
+      return;
+    }
 
     // Se for reserva, validar seleção
     const reservaId = this.tipoLanc === 'reserva' ? document.getElementById('lanc-reserva-id')?.value : null;
     if (this.tipoLanc === 'reserva' && !reservaId) {
-      FaciliteNotify.warning('Selecione uma reserva.'); return;
+      FaciliteNotify.warning('Selecione uma reserva.');
+      this._salvando = false;
+      return;
     }
 
     // Reserva = valor negativo (sai do saldo disponível para guardar)
@@ -764,6 +783,9 @@ const LancamentosPage = {
     } else {
       if (!confirm('Excluir este lançamento?')) return;
       FaciliteStorage.removeLancamento(id);
+    }
+    if (window.FaciliteSync) {
+      FaciliteSync.excluirLancamento(id);
     }
     this.render();
     FaciliteState.refresh();

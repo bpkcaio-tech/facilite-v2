@@ -86,7 +86,7 @@ const AssinaturasPage = {
 
   fecharModal() {
     const modal = document.getElementById('modal-assinatura');
-    if (modal) modal.style.display = 'none';
+    if (modal) { modal.style.display = 'none'; }
   },
 
   filtrarPresets(cat) {

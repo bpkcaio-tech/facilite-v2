@@ -160,7 +160,7 @@ const ReservasPage = {
 
   fecharModal() {
     const modal = document.getElementById('modal-reserva');
-    if (modal) modal.style.display = 'none';
+    if (modal) { modal.style.display = 'none'; }
     this.editandoId = null;
   },
 
@@ -392,7 +392,7 @@ const ReservasPage = {
     document.getElementById('rv-valor').value = '';
 
     modal.style.display = 'flex';
-    modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+    modal.onclick = e => { if (e.target === modal) { modal.style.display = 'none'; } };
     setTimeout(() => document.getElementById('rv-valor')?.focus(), 100);
   },
 

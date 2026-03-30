@@ -334,31 +334,47 @@ window.FaciliteAuth = {
   },
 
   salvarSessao(usuario) {
-    const dadosAtuais = JSON.parse(localStorage.getItem('facilite_usuario') || '{}');
-    const isAdmin = ADMIN_EMAILS.includes((usuario.email || '').toLowerCase());
+    // Preservar dados financeiros existentes
+    var dadosExistentes = {};
+    try { dadosExistentes = JSON.parse(localStorage.getItem('facilite_usuario') || '{}'); } catch(e) {}
 
-    // Verificar se tem plano pago ativo com data de expiração válida
-    let planoFinal = 'gratuito';
+    var isAdmin = ADMIN_EMAILS.includes((usuario.email || '').toLowerCase());
+    var planoFinal = 'gratuito';
     if (isAdmin) {
       planoFinal = 'pago';
-    } else if (dadosAtuais.plano === 'pago' && dadosAtuais.planoExpira) {
-      const expira = new Date(dadosAtuais.planoExpira);
-      if (expira > new Date()) {
-        planoFinal = 'pago';
-      }
+    } else if (dadosExistentes.plano === 'pago' && dadosExistentes.planoExpira) {
+      if (new Date(dadosExistentes.planoExpira) > new Date()) planoFinal = 'pago';
     }
 
-    const sessao = {
-      id: usuario.id, nome: usuario.nome, email: usuario.email,
-      foto: usuario.foto || dadosAtuais.foto || null, provider: usuario.provider,
-      plano: planoFinal, admin: isAdmin, loginEm: new Date().toISOString(),
+    var sessao = {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      foto: usuario.foto || dadosExistentes.foto || null,
+      provider: usuario.provider,
+      plano: planoFinal,
+      admin: isAdmin,
+      loginEm: new Date().toISOString(),
     };
+
     localStorage.setItem('facilite_sessao', JSON.stringify(sessao));
-    // Sincronizar com facilite_usuario (para o dashboard)
     localStorage.setItem('facilite_usuario', JSON.stringify({
-      ...dadosAtuais, nome: usuario.nome, email: usuario.email,
-      foto: usuario.foto || dadosAtuais.foto || null, plano: planoFinal,
+      ...dadosExistentes,
+      nome: usuario.nome,
+      email: usuario.email,
+      foto: usuario.foto || dadosExistentes.foto || null,
+      plano: planoFinal,
     }));
+
+    // Carregar dados do Supabase APÓS salvar sessão
+    setTimeout(function() {
+      if (window.FaciliteSync) {
+        FaciliteSync.salvarUsuario(sessao);
+        setTimeout(function() {
+          FaciliteSync.carregarTudo();
+        }, 800);
+      }
+    }, 500);
   },
 
   estaLogado() {

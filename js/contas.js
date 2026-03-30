@@ -77,7 +77,7 @@ const ContasPage = {
 
   fecharModal() {
     const modal = document.getElementById('modal-conta');
-    if (modal) modal.style.display = 'none';
+    if (modal) { modal.style.display = 'none'; }
     this.editandoId = null;
   },
 

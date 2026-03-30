@@ -6,7 +6,8 @@
       "Bash(powershell -Command \"Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force\")",
       "Bash(npm install:*)",
       "Bash(npx vite:*)",
-      "Bash(taskkill //F //IM node.exe)"
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(ls \"d:/Planilha Financeira/js/supabase\"*)"
     ]
   }
 }
