@@ -21,8 +21,6 @@ setInterval(atualizarDataTopbar, 60000);
 // Inicializa charts — chamado no DOMContentLoaded e ao voltar ao dashboard
 function initDashboardCharts() {
 
-  // ── GAUGE — valor definido dinamicamente por charts-update.js ──
-
   // ── CHART.JS — FLOW CHART (reativo) ──────────────
   const flowCtx = document.getElementById('flowChart');
   if (flowCtx) {
@@ -36,7 +34,6 @@ function initDashboardCharts() {
     gradRed.addColorStop(0, 'rgba(239,68,68,0.85)');
     gradRed.addColorStop(1, 'rgba(127,29,29,0.85)');
 
-    // Calcular últimos 6 meses a partir dos dados reais
     function calcularFluxo6Meses() {
       const mesesNome = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
       const labels = [];
@@ -131,7 +128,6 @@ function initDashboardCharts() {
       },
     });
 
-    // Expor função de atualização global
     window.atualizarGraficoFluxo = function() {
       const novo = calcularFluxo6Meses();
       flowChart.data.labels = novo.labels;
@@ -140,7 +136,6 @@ function initDashboardCharts() {
       flowChart.update();
     };
 
-    // Tab switching
     let tabAtual = 'all';
     document.querySelectorAll('.chart-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -167,46 +162,52 @@ function initDashboardCharts() {
 } // fim de initDashboardCharts()
 
 window.initDashboardCharts = initDashboardCharts;
+
+// ═══════════════════════════════════════════════════
+//  DASH NAV — Navegação de mês no Dashboard
+// ═══════════════════════════════════════════════════
 const DashNav = {
-  MESES: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
-  init() { this._atualizarLabel(); },
+  MESES: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+          'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+
+  init() {
+    this._atualizarLabel();
+  },
+
   mesAnterior() {
-    let m = FaciliteState.mesAtual - 1, a = FaciliteState.anoAtual;
+    let m = FaciliteState.mesAtual - 1;
+    let a = FaciliteState.anoAtual;
     if (m < 1) { m = 12; a--; }
     FaciliteState.setMes(m, a);
     this._atualizarLabel();
     if (typeof window.atualizarCards === 'function') window.atualizarCards();
   },
+
   mesProximo() {
-    let m = FaciliteState.mesAtual + 1, a = FaciliteState.anoAtual;
+    let m = FaciliteState.mesAtual + 1;
+    let a = FaciliteState.anoAtual;
     if (m > 12) { m = 1; a++; }
     FaciliteState.setMes(m, a);
     this._atualizarLabel();
     if (typeof window.atualizarCards === 'function') window.atualizarCards();
   },
+
   _atualizarLabel() {
     const el = document.getElementById('dash-mes-label');
     if (!el) return;
     el.textContent = this.MESES[FaciliteState.mesAtual - 1] + ' ' + FaciliteState.anoAtual;
     const hoje = new Date();
-    el.style.color = (FaciliteState.mesAtual === hoje.getMonth()+1 && FaciliteState.anoAtual === hoje.getFullYear()) ? '#F0FDF4' : '#22C55E';
+    const ehMesAtual = FaciliteState.mesAtual === (hoje.getMonth() + 1) &&
+                       FaciliteState.anoAtual === hoje.getFullYear();
+    el.style.color = ehMesAtual ? '#F0FDF4' : '#22C55E';
   },
 };
+
 window.DashNav = DashNav;
-```
 
-5. Agora `Ctrl+F` e busca: `initDashboardCharts();` dentro do `DOMContentLoaded`
-6. Adiciona `DashNav.init();` na linha seguinte
-7. `Ctrl+S` para salvar
-
----
-
-Depois roda:
-```
-git add .
-git commit -m "navegacao mes dashboard"
-git push
-
+// ═══════════════════════════════════════════════════
+//  SIDEBAR
+// ═══════════════════════════════════════════════════
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
@@ -227,14 +228,7 @@ function fecharSidebar() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initDashboardCharts();
-  DashNav.init();
-```
-
-`Ctrl+S` para salvar, depois:
-```
-git add .
-git commit -m "fix dashnav init"
-git push
+  setTimeout(() => DashNav.init(), 300);
 
   // ── ACTIVE NAV ───────────────────────────────────
   document.querySelectorAll('.nav-item').forEach(item => {
