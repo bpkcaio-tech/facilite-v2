@@ -90,24 +90,27 @@ window.FaciliteSync = {
       if (rLanc.ok) {
         var dados = await rLanc.json();
         if (Array.isArray(dados)) {
-          // Filtrar IDs da lista negra (excluídos localmente mas ainda não processados pelo Supabase)
           var idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
+          var idsServidor = dados.map(function(l) { return l.id; });
+
+          // Filtrar itens que estão na lista negra
           var dadosFiltrados = dados.filter(function(l) {
             return !idsExcluidos.includes(l.id);
           });
 
-          // Limpar da lista negra IDs que o Supabase já não retorna mais
-          var idsServidor = dados.map(function(l) { return l.id; });
-          var listaLimpa = idsExcluidos.filter(function(id) {
+          // Limpar da lista negra SOMENTE os IDs que o servidor já não retorna mais
+          // (isso confirma que o DELETE foi processado de verdade)
+          var listaAtualizada = idsExcluidos.filter(function(id) {
+            // Manter na lista negra se o servidor AINDA retornar o item
             return idsServidor.includes(id);
           });
-          localStorage.setItem('facilite_ids_excluidos', JSON.stringify(listaLimpa));
+          localStorage.setItem('facilite_ids_excluidos', JSON.stringify(listaAtualizada));
 
           if (window.FaciliteStorage) {
             FaciliteStorage.set('lancamentos', dadosFiltrados);
           }
 
-          console.log('[Sync] ' + dadosFiltrados.length + ' lancamentos carregados');
+          console.log('[Sync] ' + dadosFiltrados.length + ' lancamentos. Lista negra: ' + listaAtualizada.length + ' ids');
         }
       }
 
@@ -188,7 +191,7 @@ window.FaciliteSync = {
     var uid = this._userId();
     if (!uid) return false;
 
-    // Registrar na lista negra IMEDIATAMENTE
+    // 1. Adicionar à lista negra IMEDIATAMENTE — nunca remover daqui até confirmar que sumiu do servidor
     var idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
     if (!idsExcluidos.includes(id)) {
       idsExcluidos.push(id);
@@ -196,23 +199,30 @@ window.FaciliteSync = {
     }
 
     try {
+      // 2. Tentar DELETE só pelo ID (sem filtro de user_id para evitar mismatch)
       var r = await fetch(
-        SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id + '&user_id=eq.' + uid,
+        SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id,
         { method: 'DELETE', headers: this._h() }
       );
 
       if (r.ok) {
-        console.log('[Sync] Excluido com sucesso:', id);
-        // Remover da lista negra pois já foi excluído do Supabase
-        var lista = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
-        localStorage.setItem('facilite_ids_excluidos', JSON.stringify(
-          lista.filter(function(x) { return x !== id; })
-        ));
+        console.log('[Sync] DELETE enviado para Supabase, id:', id);
+        // NÃO remover da lista negra aqui — o carregarTudo vai remover
+        // quando confirmar que o item não está mais no servidor
       } else {
-        console.warn('[Sync] Erro ao excluir:', r.status);
+        console.warn('[Sync] Erro no DELETE:', r.status);
       }
 
+      // Log temporário para diagnóstico — remover após confirmar que funciona
+      var check = await fetch(
+        SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id,
+        { headers: this._h() }
+      );
+      var checkDados = await check.json();
+      console.log('[Sync] Verificação pós-DELETE — item ainda no servidor?', checkDados.length > 0 ? 'SIM (problema!)' : 'NÃO (ok)');
+
       return r.ok;
+
     } catch(e) {
       console.warn('[Sync] Erro excluir:', e.message);
       return false;
