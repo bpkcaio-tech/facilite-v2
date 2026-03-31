@@ -167,6 +167,45 @@ function initDashboardCharts() {
 } // fim de initDashboardCharts()
 
 window.initDashboardCharts = initDashboardCharts;
+const DashNav = {
+  MESES: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+  init() { this._atualizarLabel(); },
+  mesAnterior() {
+    let m = FaciliteState.mesAtual - 1, a = FaciliteState.anoAtual;
+    if (m < 1) { m = 12; a--; }
+    FaciliteState.setMes(m, a);
+    this._atualizarLabel();
+    if (typeof window.atualizarCards === 'function') window.atualizarCards();
+  },
+  mesProximo() {
+    let m = FaciliteState.mesAtual + 1, a = FaciliteState.anoAtual;
+    if (m > 12) { m = 1; a++; }
+    FaciliteState.setMes(m, a);
+    this._atualizarLabel();
+    if (typeof window.atualizarCards === 'function') window.atualizarCards();
+  },
+  _atualizarLabel() {
+    const el = document.getElementById('dash-mes-label');
+    if (!el) return;
+    el.textContent = this.MESES[FaciliteState.mesAtual - 1] + ' ' + FaciliteState.anoAtual;
+    const hoje = new Date();
+    el.style.color = (FaciliteState.mesAtual === hoje.getMonth()+1 && FaciliteState.anoAtual === hoje.getFullYear()) ? '#F0FDF4' : '#22C55E';
+  },
+};
+window.DashNav = DashNav;
+```
+
+5. Agora `Ctrl+F` e busca: `initDashboardCharts();` dentro do `DOMContentLoaded`
+6. Adiciona `DashNav.init();` na linha seguinte
+7. `Ctrl+S` para salvar
+
+---
+
+Depois roda:
+```
+git add .
+git commit -m "navegacao mes dashboard"
+git push
 
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
