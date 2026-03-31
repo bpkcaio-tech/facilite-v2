@@ -103,12 +103,32 @@
           <span class="notif-badge" id="notif-badge-count" style="display:none">0</span>
         </button>
         <!-- Painel de notificações -->
-        <div id="notif-panel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:340px;max-height:400px;overflow-y:auto;background:#0D1B12;border:1px solid rgba(255,255,255,0.08);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,0.5);z-index:9999;padding:0">
-          <div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center">
-            <span style="font-family:'Sora',sans-serif;font-size:14px;font-weight:600;color:#F0FDF4">Notificações</span>
-            <button onclick="NotifPanel.limparTodas()" style="background:none;border:none;color:#4B5563;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Limpar</button>
+        <div id="notif-panel" style="
+  display:none;
+  position:absolute;
+  top:calc(100% + 12px);
+  right:0;
+  width:360px;
+  max-height:480px;
+  background:#0A1410;
+  border:1px solid rgba(34,197,94,0.15);
+  border-radius:18px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(34,197,94,0.05);
+  z-index:9999;
+  overflow:hidden;
+  animation:notifSlideIn 0.2s ease">
+
+          <!-- Header -->
+          <div style="padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:8px;height:8px;border-radius:50%;background:#22C55E;box-shadow:0 0 8px rgba(34,197,94,0.6)"></div>
+              <span style="font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:#F0FDF4">Notificações</span>
+            </div>
+            <button onclick="NotifPanel.limparTodas()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#6B7280;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;padding:4px 12px;border-radius:8px;transition:all 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.08)';this.style.color='#F0FDF4'" onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.color='#6B7280'">Limpar tudo</button>
           </div>
-          <div id="notif-list"></div>
+
+          <!-- Lista -->
+          <div id="notif-list" style="overflow-y:auto;max-height:400px;padding:8px 0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.08) transparent"></div>
         </div>
         <div class="topbar__avatar" style="cursor:pointer" onclick="FaciliteRouter.navigate('perfil')" title="Meu perfil">F</div>
       </div>

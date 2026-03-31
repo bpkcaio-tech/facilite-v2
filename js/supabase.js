@@ -138,42 +138,49 @@ window.FaciliteSync = {
         if (Array.isArray(dadosArr) && dadosArr.length > 0) {
           var d = dadosArr[0];
 
+          // Verificar se dados do servidor são mais recentes que o local
+          var servidorTs = d.atualizado_em ? new Date(d.atualizado_em).getTime() : 0;
+          var localTs = parseInt(localStorage.getItem('facilite_dados_ts') || '0');
+
+          // Sempre usar servidor se tiver dados válidos
+          // (servidor é fonte de verdade)
           if (d.receita && typeof d.receita === 'object' && d.receita.mensal > 0) {
             localStorage.setItem('facilite_receita', JSON.stringify(d.receita));
-            console.log('[Sync] Receita restaurada: R$' + d.receita.mensal);
           }
-          if (Array.isArray(d.contas) && d.contas.length > 0) {
+          if (Array.isArray(d.contas)) {
             localStorage.setItem('facilite_contas', JSON.stringify(d.contas));
-            console.log('[Sync] ' + d.contas.length + ' contas');
+            console.log('[Sync] Contas: ' + d.contas.length);
           }
-          if (Array.isArray(d.cartoes) && d.cartoes.length > 0) {
+          if (Array.isArray(d.cartoes)) {
             localStorage.setItem('facilite_cartoes', JSON.stringify(d.cartoes));
           }
-          if (Array.isArray(d.assinaturas) && d.assinaturas.length > 0) {
+          if (Array.isArray(d.assinaturas)) {
             localStorage.setItem('facilite_assinaturas', JSON.stringify(d.assinaturas));
-            console.log('[Sync] ' + d.assinaturas.length + ' assinaturas');
+            console.log('[Sync] Assinaturas: ' + d.assinaturas.length);
           }
-          if (Array.isArray(d.reservas) && d.reservas.length > 0) {
+          if (Array.isArray(d.reservas)) {
             localStorage.setItem('facilite_reservas', JSON.stringify(d.reservas));
-            console.log('[Sync] ' + d.reservas.length + ' reservas');
+            console.log('[Sync] Reservas: ' + d.reservas.length);
           }
           if (d.categorias && typeof d.categorias === 'object') {
             localStorage.setItem('facilite_categorias', JSON.stringify(d.categorias));
           }
-          if (Array.isArray(d.relatorios) && d.relatorios.length > 0) {
+          if (Array.isArray(d.relatorios)) {
             localStorage.setItem('facilite_relatorios', JSON.stringify(d.relatorios));
           }
           if (d.preferencias && typeof d.preferencias === 'object') {
             localStorage.setItem('facilite_preferencias', JSON.stringify(d.preferencias));
           }
-          if (Array.isArray(d.notificacoes) && d.notificacoes.length > 0) {
-            localStorage.setItem('facilite_notificacoes', JSON.stringify(d.notificacoes));
+
+          // Salvar timestamp dos dados do servidor
+          if (servidorTs > 0) {
+            localStorage.setItem('facilite_dados_ts', servidorTs.toString());
           }
 
           console.log('[Sync] Dados usuario restaurados');
 
-        } else if (!resetRemotoDetectado) {
-          console.log('[Sync] Sem dados no servidor — subindo dados locais...');
+        } else {
+          console.log('[Sync] Sem dados no servidor, subindo dados locais...');
           this.ready = true;
           await this.salvarDadosUsuario();
           this.ready = false;

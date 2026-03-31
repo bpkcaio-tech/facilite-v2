@@ -119,6 +119,9 @@ const ContasPage = {
     }
 
     FaciliteStorage.set('contas', contas);
+    if (window.FaciliteSync && FaciliteSync.ready) {
+      FaciliteSync.salvarDadosUsuario();
+    }
     this.fecharModal();
     this.render();
     FaciliteState.refresh();
@@ -130,6 +133,9 @@ const ContasPage = {
     if (!confirm('Remover esta conta?')) return;
     const contas = FaciliteStorage.get('contas') || [];
     FaciliteStorage.set('contas', contas.filter(c => c.id !== id));
+    if (window.FaciliteSync && FaciliteSync.ready) {
+      FaciliteSync.salvarDadosUsuario();
+    }
     this.render();
     FaciliteState.refresh();
     FaciliteNotify.success('Conta removida.');
