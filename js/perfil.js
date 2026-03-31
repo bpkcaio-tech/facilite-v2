@@ -203,7 +203,7 @@ const PerfilPage = {
 
   // ── Reset ──────────────────────────────────────────
   async resetDados() {
-    if (!confirm('Tem certeza? TODOS os seus dados serão apagados permanentemente:\n\n• Lançamentos\n• Contas bancárias\n• Reservas\n• Assinaturas\n• Relatórios\n• Preferências\n• Perfil')) return;
+    if (!confirm('Tem certeza? TODOS os seus dados serão apagados permanentemente:\n\n• Lançamentos\n• Contas bancárias\n• Reservas\n• Assinaturas\n• Relatórios\n• Preferências')) return;
     if (!confirm('ÚLTIMA CHANCE!\n\nEsta ação é irreversível. Deseja continuar?')) return;
 
     FaciliteNotify && FaciliteNotify.info('Apagando todos os dados...');
