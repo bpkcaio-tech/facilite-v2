@@ -54,11 +54,34 @@ window.FaciliteSync = {
     if (!uid) return;
     if (this._carregando && !forcar) return;
     this._carregando = true;
-
-    // Desativar pushKey durante carregamento para evitar loop
     this.ready = false;
 
+    var resetRemotoDetectado = false;
+
     try {
+      // ── 0. Verificar se houve reset em outro dispositivo ──
+      var rControle = await fetch(
+        SUPABASE_URL + '/rest/v1/controle_conta?user_id=eq.' + uid,
+        { headers: this._h() }
+      );
+
+      if (rControle.ok) {
+        var controle = await rControle.json();
+        if (Array.isArray(controle) && controle.length > 0 && controle[0].reset_em) {
+          var resetEm = new Date(controle[0].reset_em).getTime();
+          var ultimoAcesso = parseInt(localStorage.getItem('facilite_ultimo_acesso') || '0');
+
+          if (resetEm > ultimoAcesso) {
+            console.log('[Sync] Reset detectado em outro dispositivo — limpando localStorage...');
+            if (window.FaciliteStorage) FaciliteStorage.reset();
+            localStorage.removeItem('facilite_ids_excluidos');
+            resetRemotoDetectado = true;
+          }
+        }
+      }
+
+      localStorage.setItem('facilite_ultimo_acesso', Date.now().toString());
+
       // ── 1. Lançamentos ──────────────────────────
       var rLanc = await fetch(
         SUPABASE_URL + '/rest/v1/lancamentos?user_id=eq.' + uid + '&order=data.desc&limit=1000',
@@ -68,16 +91,6 @@ window.FaciliteSync = {
       if (rLanc.ok) {
         var lancamentos = await rLanc.json();
         if (Array.isArray(lancamentos)) {
-          lancamentos = lancamentos.map(function(l) {
-            if (!Number.isFinite(l.mes) || !Number.isFinite(l.ano)) {
-              var dt = new Date((l.data || '').split('T')[0] + 'T12:00:00');
-              if (!isNaN(dt)) {
-                l.mes = dt.getMonth() + 1;
-                l.ano = dt.getFullYear();
-              }
-            }
-            return l;
-          });
           var idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
           var idsServidor = lancamentos.map(function(l) { return l.id; });
 
@@ -85,7 +98,16 @@ window.FaciliteSync = {
             return !idsExcluidos.includes(l.id);
           });
 
-          // Limpar lista negra
+          // Normalizar mes/ano caso estejam faltando
+          filtrados = filtrados.map(function(l) {
+            if (!l.mes || !l.ano) {
+              var dt = new Date((l.data || new Date().toISOString().split('T')[0]) + 'T12:00:00');
+              l.mes = dt.getMonth() + 1;
+              l.ano = dt.getFullYear();
+            }
+            return l;
+          });
+
           localStorage.setItem('facilite_ids_excluidos', JSON.stringify(
             idsExcluidos.filter(function(id) { return idsServidor.includes(id); })
           ));
@@ -95,7 +117,7 @@ window.FaciliteSync = {
             console.log('[Sync] ' + filtrados.length + ' lancamentos carregados');
           } else if (lancamentos.length === 0) {
             var local = JSON.parse(localStorage.getItem('facilite_lancamentos') || '[]');
-            if (local.length > 0) {
+            if (local.length > 0 && !resetRemotoDetectado) {
               console.log('[Sync] Supabase vazio, subindo ' + local.length + ' lancamentos locais...');
               var self = this;
               setTimeout(function() { self._subirLancamentosLocais(local); }, 1500);
@@ -118,7 +140,6 @@ window.FaciliteSync = {
 
           if (d.receita && typeof d.receita === 'object') {
             localStorage.setItem('facilite_receita', JSON.stringify(d.receita));
-            console.log('[Sync] Receita: R$' + (d.receita.mensal || 0));
           }
           if (Array.isArray(d.contas) && d.contas.length > 0) {
             localStorage.setItem('facilite_contas', JSON.stringify(d.contas));
@@ -148,10 +169,10 @@ window.FaciliteSync = {
             localStorage.setItem('facilite_notificacoes', JSON.stringify(d.notificacoes));
           }
 
-          console.log('[Sync] Dados usuario restaurados com sucesso');
+          console.log('[Sync] Dados usuario restaurados');
 
-        } else {
-          console.log('[Sync] Sem dados no servidor, subindo dados locais...');
+        } else if (!resetRemotoDetectado) {
+          console.log('[Sync] Sem dados no servidor — subindo dados locais...');
           this.ready = true;
           await this.salvarDadosUsuario();
           this.ready = false;
@@ -165,7 +186,7 @@ window.FaciliteSync = {
     } finally {
       this._carregando = false;
       this.ready = true;
-      console.log('[Sync] Carregamento concluido, sync ativo');
+      console.log('[Sync] Carregamento concluido');
     }
   },
 

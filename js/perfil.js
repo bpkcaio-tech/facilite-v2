@@ -206,22 +206,41 @@ const PerfilPage = {
     if (!confirm('Tem certeza? TODOS os seus dados serão apagados permanentemente:\n\n• Lançamentos\n• Contas bancárias\n• Reservas\n• Assinaturas\n• Relatórios\n• Preferências\n• Perfil')) return;
     if (!confirm('ÚLTIMA CHANCE!\n\nEsta ação é irreversível. Deseja continuar?')) return;
 
-    const uid = window.FaciliteSync ? FaciliteSync._userId() : null;
-    if (uid && window.FaciliteSync && typeof FaciliteSync._h === 'function') {
-      FaciliteSync.ready = false;
+    FaciliteNotify && FaciliteNotify.info('Apagando todos os dados...');
+
+    var uid = window.FaciliteSync ? FaciliteSync._userId() : null;
+
+    if (uid) {
       try {
-        var headers = FaciliteSync._h();
-        await fetch(SUPABASE_URL + '/rest/v1/lancamentos?user_id=eq.' + uid, { method: 'DELETE', headers: headers });
-        await fetch(SUPABASE_URL + '/rest/v1/dados_usuario?user_id=eq.' + uid, { method: 'DELETE', headers: headers });
-      } catch (e) {
-        console.warn('[Perfil] Erro ao apagar dados do servidor:', e.message);
-      } finally {
-        FaciliteSync.ready = true;
+        var h = FaciliteSync._h();
+        var url = SUPABASE_URL + '/rest/v1/';
+
+        await fetch(url + 'lancamentos?user_id=eq.' + uid, { method: 'DELETE', headers: h });
+        await fetch(url + 'dados_usuario?user_id=eq.' + uid, { method: 'DELETE', headers: h });
+        await fetch(url + 'receitas?user_id=eq.' + uid, { method: 'DELETE', headers: h });
+
+        await fetch(url + 'controle_conta?on_conflict=user_id', {
+          method: 'POST',
+          headers: Object.assign({}, h, {
+            'Prefer': 'resolution=merge-duplicates,return=representation'
+          }),
+          body: JSON.stringify({
+            user_id: uid,
+            reset_em: new Date().toISOString(),
+            atualizado_em: new Date().toISOString()
+          })
+        });
+
+        console.log('[Reset] Supabase limpo + timestamp gravado');
+      } catch(e) {
+        console.warn('[Reset] Erro:', e.message);
       }
     }
 
     FaciliteStorage.reset();
-    // Recarregar a página para garantir estado limpo
+    localStorage.removeItem('facilite_ids_excluidos');
+    localStorage.removeItem('facilite_ultimo_acesso');
+
     window.location.href = 'dashboard.html';
   },
 
