@@ -180,11 +180,22 @@ window.FaciliteSync = {
           console.log('[Sync] Dados usuario restaurados');
 
         } else {
-          console.log('[Sync] Sem dados no servidor, subindo dados locais...');
-          this.ready = true;
-          await this.salvarDadosUsuario();
-          this.ready = false;
-        }
+  var uidLocal = localStorage.getItem('facilite_dados_uid');
+  if (uidLocal && uidLocal !== uid) {
+    console.log('[Sync] Dados locais de outro usuario — limpando...');
+    if (window.FaciliteStorage) FaciliteStorage.reset();
+    localStorage.removeItem('facilite_ids_excluidos');
+  } else if (uidLocal === uid) {
+    console.log('[Sync] Subindo dados locais do usuario...');
+    this.ready = true;
+    await this.salvarDadosUsuario();
+    this.ready = false;
+  } else {
+    console.log('[Sync] Conta nova — iniciando zerada');
+  }
+  localStorage.setItem('facilite_dados_uid', uid);
+}
+```
       }
 
       // Atualizar UI após carregar todos os dados
