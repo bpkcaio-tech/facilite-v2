@@ -227,6 +227,14 @@ function fecharSidebar() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initDashboardCharts();
+  DashNav.init();
+```
+
+`Ctrl+S` para salvar, depois:
+```
+git add .
+git commit -m "fix dashnav init"
+git push
 
   // ── ACTIVE NAV ───────────────────────────────────
   document.querySelectorAll('.nav-item').forEach(item => {
