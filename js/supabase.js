@@ -10,6 +10,7 @@ window.FaciliteSync = {
   _carregando: false,
   _refreshTimer: null,
   _salvandoDados: false,
+  ready: false,
 
   // ── Headers ────────────────────────────────────
   _h: function() {
@@ -100,36 +101,42 @@ window.FaciliteSync = {
 
       if (rDados.ok) {
         var dadosArr = await rDados.json();
-        if (Array.isArray(dadosArr) && dadosArr.length > 0) {
-          var dados = dadosArr[0];
+        if (Array.isArray(dadosArr) && dadosArr.length > 0 && window.FaciliteStorage) {
+          var d = dadosArr[0];
 
-          if (window.FaciliteStorage) {
-            // Receita mensal
-            if (dados.receita && dados.receita.mensal) {
-              FaciliteStorage.set('receita', dados.receita);
-              console.log('[Sync] Receita carregada: R$' + dados.receita.mensal);
-            }
-            // Cartões
-            if (Array.isArray(dados.cartoes) && dados.cartoes.length > 0) {
-              FaciliteStorage.set('cartoes', dados.cartoes);
-            }
-            // Assinaturas
-            if (Array.isArray(dados.assinaturas) && dados.assinaturas.length > 0) {
-              FaciliteStorage.set('assinaturas', dados.assinaturas);
-            }
-            // Reservas
-            if (Array.isArray(dados.reservas) && dados.reservas.length > 0) {
-              FaciliteStorage.set('reservas', dados.reservas);
-            }
-            // Categorias
-            if (dados.categorias && Object.keys(dados.categorias).length > 0) {
-              FaciliteStorage.set('categorias', dados.categorias);
-            }
+          if (d.receita && (d.receita.mensal || d.receita.mensal === 0)) {
+            FaciliteStorage.set('receita', d.receita);
           }
+          if (Array.isArray(d.contas) && d.contas.length > 0) {
+            FaciliteStorage.set('contas', d.contas);
+          }
+          if (Array.isArray(d.cartoes) && d.cartoes.length > 0) {
+            FaciliteStorage.set('cartoes', d.cartoes);
+          }
+          if (Array.isArray(d.assinaturas) && d.assinaturas.length > 0) {
+            FaciliteStorage.set('assinaturas', d.assinaturas);
+          }
+          if (Array.isArray(d.reservas) && d.reservas.length > 0) {
+            FaciliteStorage.set('reservas', d.reservas);
+          }
+          if (d.categorias && Object.keys(d.categorias).length > 0) {
+            FaciliteStorage.set('categorias', d.categorias);
+          }
+          if (Array.isArray(d.relatorios) && d.relatorios.length > 0) {
+            FaciliteStorage.set('relatorios', d.relatorios);
+          }
+          if (d.preferencias && Object.keys(d.preferencias).length > 0) {
+            FaciliteStorage.set('preferencias', d.preferencias);
+          }
+          if (Array.isArray(d.notificacoes) && d.notificacoes.length > 0) {
+            FaciliteStorage.set('notificacoes', d.notificacoes);
+          }
+
+          console.log('[Sync] Dados usuario restaurados do Supabase');
         } else {
-          // Não existe ainda no servidor — subir dados locais
-          console.log('[Sync] Dados usuario nao encontrados, subindo dados locais...');
-          this.salvarDadosUsuario();
+          // Servidor sem dados — subir dados locais
+          console.log('[Sync] Sem dados no servidor, subindo dados locais...');
+          await this.salvarDadosUsuario();
         }
       }
 
@@ -154,11 +161,15 @@ window.FaciliteSync = {
     try {
       var dados = {
         user_id: uid,
-        receita: window.FaciliteStorage ? (FaciliteStorage.get('receita') || {}) : {},
-        cartoes: window.FaciliteStorage ? (FaciliteStorage.get('cartoes') || []) : [],
-        assinaturas: window.FaciliteStorage ? (FaciliteStorage.get('assinaturas') || []) : [],
-        reservas: window.FaciliteStorage ? (FaciliteStorage.get('reservas') || []) : [],
-        categorias: window.FaciliteStorage ? (FaciliteStorage.get('categorias') || {}) : {},
+        receita:       window.FaciliteStorage ? (FaciliteStorage.get('receita')       || {})  : {},
+        contas:        window.FaciliteStorage ? (FaciliteStorage.get('contas')        || [])  : [],
+        cartoes:       window.FaciliteStorage ? (FaciliteStorage.get('cartoes')       || [])  : [],
+        assinaturas:   window.FaciliteStorage ? (FaciliteStorage.get('assinaturas')   || [])  : [],
+        reservas:      window.FaciliteStorage ? (FaciliteStorage.get('reservas')      || [])  : [],
+        categorias:    window.FaciliteStorage ? (FaciliteStorage.get('categorias')    || {})  : {},
+        relatorios:    window.FaciliteStorage ? (FaciliteStorage.get('relatorios')    || [])  : [],
+        preferencias:  window.FaciliteStorage ? (FaciliteStorage.get('preferencias')  || {})  : {},
+        notificacoes:  window.FaciliteStorage ? (FaciliteStorage.get('notificacoes')  || [])  : [],
         atualizado_em: new Date().toISOString()
       };
 
@@ -174,15 +185,38 @@ window.FaciliteSync = {
       );
 
       if (r.ok) {
-        console.log('[Sync] Dados usuario salvos (receita, cartoes, assinaturas, reservas)');
+        console.log('[Sync] Dados salvos: receita, contas, cartoes, assinaturas, reservas, relatorios');
       } else {
-        console.warn('[Sync] Erro ao salvar dados usuario:', r.status);
+        var err = await r.json().catch(function() { return {}; });
+        console.warn('[Sync] Erro ao salvar dados:', r.status, JSON.stringify(err));
       }
     } catch(e) {
       console.warn('[Sync] Erro salvarDadosUsuario:', e.message);
     } finally {
       this._salvandoDados = false;
     }
+  },
+
+  // ══════════════════════════════════════════════
+  //  PUSH KEY — chamado automaticamente pelo storage.js
+  //  a cada FaciliteStorage.set()
+  // ══════════════════════════════════════════════
+  pushKey: async function(chave, valor) {
+    var uid = this._userId();
+    if (!uid) return;
+
+    if (chave === 'lancamentos') return;
+
+    var chavesUsuario = ['receita', 'contas', 'cartoes', 'assinaturas', 'reservas', 'categorias', 'relatorios', 'preferencias', 'notificacoes'];
+    if (!chavesUsuario.includes(chave)) return;
+
+    if (!this._pushTimers) this._pushTimers = {};
+    if (this._pushTimers[chave]) clearTimeout(this._pushTimers[chave]);
+
+    var self = this;
+    this._pushTimers[chave] = setTimeout(async function() {
+      await self.salvarDadosUsuario();
+    }, 500);
   },
 
   // ══════════════════════════════════════════════
@@ -344,3 +378,6 @@ window.FaciliteSync = {
   }
 
 };
+
+window.FaciliteSync.ready = true;
+console.log('[Sync] FaciliteSync pronto');
