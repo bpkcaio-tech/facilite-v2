@@ -55,6 +55,9 @@ window.FaciliteSync = {
     if (this._carregando && !forcar) return;
     this._carregando = true;
 
+    // Desativar pushKey durante carregamento para evitar loop
+    this.ready = false;
+
     try {
       // ── 1. Lançamentos ──────────────────────────
       var rLanc = await fetch(
@@ -65,7 +68,6 @@ window.FaciliteSync = {
       if (rLanc.ok) {
         var lancamentos = await rLanc.json();
         if (Array.isArray(lancamentos)) {
-          // Lista negra: IDs excluídos localmente
           var idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
           var idsServidor = lancamentos.map(function(l) { return l.id; });
 
@@ -73,27 +75,26 @@ window.FaciliteSync = {
             return !idsExcluidos.includes(l.id);
           });
 
-          // Limpar lista negra: remover IDs que o servidor já não tem
-          var listaLimpa = idsExcluidos.filter(function(id) {
-            return idsServidor.includes(id);
-          });
-          localStorage.setItem('facilite_ids_excluidos', JSON.stringify(listaLimpa));
+          // Limpar lista negra
+          localStorage.setItem('facilite_ids_excluidos', JSON.stringify(
+            idsExcluidos.filter(function(id) { return idsServidor.includes(id); })
+          ));
 
-          if (filtrados.length > 0 && window.FaciliteStorage) {
-            FaciliteStorage.set('lancamentos', filtrados);
+          if (filtrados.length > 0) {
+            localStorage.setItem('facilite_lancamentos', JSON.stringify(filtrados));
             console.log('[Sync] ' + filtrados.length + ' lancamentos carregados');
           } else if (lancamentos.length === 0) {
-            // Servidor vazio — tentar subir dados locais
-            var local = window.FaciliteStorage ? (FaciliteStorage.get('lancamentos') || []) : [];
+            var local = JSON.parse(localStorage.getItem('facilite_lancamentos') || '[]');
             if (local.length > 0) {
               console.log('[Sync] Supabase vazio, subindo ' + local.length + ' lancamentos locais...');
-              this._subirLancamentosLocais(local);
+              var self = this;
+              setTimeout(function() { self._subirLancamentosLocais(local); }, 1500);
             }
           }
         }
       }
 
-      // ── 2. Dados do usuário (receita, cartões, assinaturas, reservas, categorias) ──
+      // ── 2. Dados do usuário ──────────────────────
       var rDados = await fetch(
         SUPABASE_URL + '/rest/v1/dados_usuario?user_id=eq.' + uid,
         { headers: this._h() }
@@ -101,51 +102,60 @@ window.FaciliteSync = {
 
       if (rDados.ok) {
         var dadosArr = await rDados.json();
-        if (Array.isArray(dadosArr) && dadosArr.length > 0 && window.FaciliteStorage) {
+
+        if (Array.isArray(dadosArr) && dadosArr.length > 0) {
           var d = dadosArr[0];
 
-          if (d.receita && (d.receita.mensal || d.receita.mensal === 0)) {
-            FaciliteStorage.set('receita', d.receita);
+          if (d.receita && typeof d.receita === 'object') {
+            localStorage.setItem('facilite_receita', JSON.stringify(d.receita));
+            console.log('[Sync] Receita: R$' + (d.receita.mensal || 0));
           }
           if (Array.isArray(d.contas) && d.contas.length > 0) {
-            FaciliteStorage.set('contas', d.contas);
+            localStorage.setItem('facilite_contas', JSON.stringify(d.contas));
+            console.log('[Sync] ' + d.contas.length + ' contas');
           }
           if (Array.isArray(d.cartoes) && d.cartoes.length > 0) {
-            FaciliteStorage.set('cartoes', d.cartoes);
+            localStorage.setItem('facilite_cartoes', JSON.stringify(d.cartoes));
           }
           if (Array.isArray(d.assinaturas) && d.assinaturas.length > 0) {
-            FaciliteStorage.set('assinaturas', d.assinaturas);
+            localStorage.setItem('facilite_assinaturas', JSON.stringify(d.assinaturas));
+            console.log('[Sync] ' + d.assinaturas.length + ' assinaturas');
           }
           if (Array.isArray(d.reservas) && d.reservas.length > 0) {
-            FaciliteStorage.set('reservas', d.reservas);
+            localStorage.setItem('facilite_reservas', JSON.stringify(d.reservas));
+            console.log('[Sync] ' + d.reservas.length + ' reservas');
           }
-          if (d.categorias && Object.keys(d.categorias).length > 0) {
-            FaciliteStorage.set('categorias', d.categorias);
+          if (d.categorias && typeof d.categorias === 'object') {
+            localStorage.setItem('facilite_categorias', JSON.stringify(d.categorias));
           }
           if (Array.isArray(d.relatorios) && d.relatorios.length > 0) {
-            FaciliteStorage.set('relatorios', d.relatorios);
+            localStorage.setItem('facilite_relatorios', JSON.stringify(d.relatorios));
           }
-          if (d.preferencias && Object.keys(d.preferencias).length > 0) {
-            FaciliteStorage.set('preferencias', d.preferencias);
+          if (d.preferencias && typeof d.preferencias === 'object') {
+            localStorage.setItem('facilite_preferencias', JSON.stringify(d.preferencias));
           }
           if (Array.isArray(d.notificacoes) && d.notificacoes.length > 0) {
-            FaciliteStorage.set('notificacoes', d.notificacoes);
+            localStorage.setItem('facilite_notificacoes', JSON.stringify(d.notificacoes));
           }
 
-          console.log('[Sync] Dados usuario restaurados do Supabase');
+          console.log('[Sync] Dados usuario restaurados com sucesso');
+
         } else {
-          // Servidor sem dados — subir dados locais
           console.log('[Sync] Sem dados no servidor, subindo dados locais...');
+          this.ready = true;
           await this.salvarDadosUsuario();
+          this.ready = false;
         }
       }
 
       this._refreshUI();
 
     } catch(e) {
-      console.warn('[Sync] Erro ao carregar:', e.message);
+      console.warn('[Sync] Erro carregarTudo:', e.message);
     } finally {
       this._carregando = false;
+      this.ready = true;
+      console.log('[Sync] Carregamento concluido, sync ativo');
     }
   },
 
@@ -202,12 +212,16 @@ window.FaciliteSync = {
   //  a cada FaciliteStorage.set()
   // ══════════════════════════════════════════════
   pushKey: async function(chave, valor) {
+    // NÃO salvar durante carregamento — evita sobrescrever Supabase com dados vazios
+    if (!this.ready) return;
+
     var uid = this._userId();
     if (!uid) return;
 
     if (chave === 'lancamentos') return;
 
-    var chavesUsuario = ['receita', 'contas', 'cartoes', 'assinaturas', 'reservas', 'categorias', 'relatorios', 'preferencias', 'notificacoes'];
+    var chavesUsuario = ['receita', 'contas', 'cartoes', 'assinaturas', 'reservas',
+                         'categorias', 'relatorios', 'preferencias', 'notificacoes'];
     if (!chavesUsuario.includes(chave)) return;
 
     if (!this._pushTimers) this._pushTimers = {};
