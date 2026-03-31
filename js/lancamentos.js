@@ -707,7 +707,6 @@ const LancamentosPage = {
     var novoId = FaciliteStorage.uid('lanc');
 
     const lancBase = {
-      id: novoId,
       descricao, valor, categoria: this.tipoLanc === 'reserva' ? 'Reserva' : categoria,
       tipo: this.tagLanc, data,
       formaPagamento: forma, cartaoId, recorrente,
@@ -718,7 +717,7 @@ const LancamentosPage = {
 
     if (this.editandoId) {
       var dataObj2 = new Date(data + 'T12:00:00');
-      var lancEditado = Object.assign({}, lancBase, {
+      var lancEditado = Object.assign({}, { id: this.editandoId }, lancBase, {
         mes: dataObj2.getMonth() + 1,
         ano: dataObj2.getFullYear()
       });
@@ -740,7 +739,7 @@ const LancamentosPage = {
 
       for (var i = 0; i < numParcelas; i++) {
         var futuro = new Date(dt.getFullYear(), dt.getMonth() + i, dt.getDate());
-        var parcela = Object.assign({}, lancBase, {
+        var parcela = Object.assign({}, { id: FaciliteStorage.uid('lanc') }, lancBase, {
           valor: valorParcela,
           descricao: descricao + ' (' + (i + 1) + '/' + numParcelas + ')',
           data: futuro.toISOString().split('T')[0],
@@ -759,7 +758,7 @@ const LancamentosPage = {
     } else {
       // Lançamento simples — envia ao Supabase primeiro
       var dataObj = new Date(data + 'T12:00:00');
-      var lancComMes = Object.assign({}, lancBase, {
+      var lancComMes = Object.assign({}, { id: novoId }, lancBase, {
         mes: dataObj.getMonth() + 1,
         ano: dataObj.getFullYear()
       });
@@ -777,7 +776,7 @@ const LancamentosPage = {
         var dtRec = new Date(data + 'T12:00:00');
         for (var j = 1; j < duracao; j++) {
           var futuroRec = new Date(dtRec.getFullYear(), dtRec.getMonth() + j, diaVenc || dtRec.getDate());
-          var lancRec = Object.assign({}, lancBase, {
+          var lancRec = Object.assign({}, { id: FaciliteStorage.uid('lanc') }, lancBase, {
             data: futuroRec.toISOString().split('T')[0],
             mes: futuroRec.getMonth() + 1,
             ano: futuroRec.getFullYear()

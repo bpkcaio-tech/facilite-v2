@@ -68,6 +68,16 @@ window.FaciliteSync = {
       if (rLanc.ok) {
         var lancamentos = await rLanc.json();
         if (Array.isArray(lancamentos)) {
+          lancamentos = lancamentos.map(function(l) {
+            if (!Number.isFinite(l.mes) || !Number.isFinite(l.ano)) {
+              var dt = new Date((l.data || '').split('T')[0] + 'T12:00:00');
+              if (!isNaN(dt)) {
+                l.mes = dt.getMonth() + 1;
+                l.ano = dt.getFullYear();
+              }
+            }
+            return l;
+          });
           var idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
           var idsServidor = lancamentos.map(function(l) { return l.id; });
 

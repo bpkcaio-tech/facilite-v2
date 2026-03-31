@@ -202,9 +202,24 @@ const PerfilPage = {
   },
 
   // ── Reset ──────────────────────────────────────────
-  resetDados() {
+  async resetDados() {
     if (!confirm('Tem certeza? TODOS os seus dados serão apagados permanentemente:\n\n• Lançamentos\n• Contas bancárias\n• Reservas\n• Assinaturas\n• Relatórios\n• Preferências\n• Perfil')) return;
     if (!confirm('ÚLTIMA CHANCE!\n\nEsta ação é irreversível. Deseja continuar?')) return;
+
+    const uid = window.FaciliteSync ? FaciliteSync._userId() : null;
+    if (uid && window.FaciliteSync && typeof FaciliteSync._h === 'function') {
+      FaciliteSync.ready = false;
+      try {
+        var headers = FaciliteSync._h();
+        await fetch(SUPABASE_URL + '/rest/v1/lancamentos?user_id=eq.' + uid, { method: 'DELETE', headers: headers });
+        await fetch(SUPABASE_URL + '/rest/v1/dados_usuario?user_id=eq.' + uid, { method: 'DELETE', headers: headers });
+      } catch (e) {
+        console.warn('[Perfil] Erro ao apagar dados do servidor:', e.message);
+      } finally {
+        FaciliteSync.ready = true;
+      }
+    }
+
     FaciliteStorage.reset();
     // Recarregar a página para garantir estado limpo
     window.location.href = 'dashboard.html';
