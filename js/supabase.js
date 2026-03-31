@@ -138,8 +138,9 @@ window.FaciliteSync = {
         if (Array.isArray(dadosArr) && dadosArr.length > 0) {
           var d = dadosArr[0];
 
-          if (d.receita && typeof d.receita === 'object') {
+          if (d.receita && typeof d.receita === 'object' && d.receita.mensal > 0) {
             localStorage.setItem('facilite_receita', JSON.stringify(d.receita));
+            console.log('[Sync] Receita restaurada: R$' + d.receita.mensal);
           }
           if (Array.isArray(d.contas) && d.contas.length > 0) {
             localStorage.setItem('facilite_contas', JSON.stringify(d.contas));
@@ -179,6 +180,10 @@ window.FaciliteSync = {
         }
       }
 
+      // Atualizar UI após carregar todos os dados
+      if (typeof window.atualizarCards === 'function') {
+        window.atualizarCards();
+      }
       this._refreshUI();
 
     } catch(e) {
@@ -378,11 +383,15 @@ window.FaciliteSync = {
   //  SALVAR RECEITA (atalho que chama salvarDadosUsuario)
   // ══════════════════════════════════════════════
   salvarReceita: async function(valor) {
+    var uid = this._userId();
+    if (!uid) return;
     if (window.FaciliteStorage) {
       var recAtual = FaciliteStorage.get('receita') || {};
-      FaciliteStorage.set('receita', Object.assign({}, recAtual, { mensal: valor }));
+      recAtual.mensal = valor;
+      localStorage.setItem('facilite_receita', JSON.stringify(recAtual));
     }
     await this.salvarDadosUsuario();
+    console.log('[Sync] Receita salva no Supabase: R$' + valor);
   },
 
   // ══════════════════════════════════════════════

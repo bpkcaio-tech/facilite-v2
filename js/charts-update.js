@@ -37,35 +37,51 @@ const ChartsUpdate = {
     const elGaugePct   = document.getElementById('gauge-pct-label');
     const elGauge      = document.getElementById('gaugeFill');
 
+    // Receita fixa configurada (fonte principal — sincronizada via dados_usuario)
+    var receitaFixaConfig = 0;
+    try {
+      var recObj = FaciliteStorage.get('receita');
+      receitaFixaConfig = (recObj && recObj.mensal) ? Number(recObj.mensal) : 0;
+    } catch(e) {}
+
+    // Receita de lançamentos do mês (lançamentos positivos)
+    var receitaLancamentos = totais.receita || 0;
+
+    // Usar a maior entre receita fixa e lançamentos
+    // (evita mostrar 0 quando o lançamento não foi sincronizado ainda)
+    var receitaExibir = Math.max(receitaFixaConfig, receitaLancamentos);
+    var disponivelReal = receitaExibir - totais.despesas;
+    var pctReal = receitaExibir > 0 ? Math.round((totais.despesas / receitaExibir) * 100) : 0;
+
     if (elSaldo)      this._animarValor(elSaldo, saldoTotal);
-    if (elReceita)    this._animarValor(elReceita, totais.receita);
+    if (elReceita)    this._animarValor(elReceita, receitaExibir);
     if (elDespesa)    this._animarValor(elDespesa, totais.despesas, true);
-    if (elDisponivel) this._animarValor(elDisponivel, totais.disponivel);
+    if (elDisponivel) this._animarValor(elDisponivel, disponivelReal);
     // pct = % gasto (usado). Cor baseada em quanto já gastou:
     // pouco gasto = verde, metade = amarelo, quase tudo = vermelho
-    const corUsado = totais.pct >= 90 ? '#EF4444'
-      : totais.pct >= 75 ? '#F97316'
-      : totais.pct >= 50 ? '#F59E0B'
+    const corUsado = pctReal >= 90 ? '#EF4444'
+      : pctReal >= 75 ? '#F97316'
+      : pctReal >= 50 ? '#F59E0B'
       : '#22C55E';
 
     // Badge de % no card Disponível
     const elPctBadge = document.getElementById('valor-percentual-badge');
     if (elPctBadge) {
-      const pctDisp = 100 - totais.pct;
-      elPctBadge.textContent = pctDisp + '% disponível';
+      var pctDisp = receitaExibir > 0 ? Math.round((disponivelReal / receitaExibir) * 100) : 0;
+      elPctBadge.textContent = Math.max(0, pctDisp) + '% disponível';
     }
 
     if (elGaugePct) {
-      elGaugePct.textContent = totais.pct + '% comprometido';
+      elGaugePct.textContent = pctReal + '% comprometido';
       elGaugePct.style.color = corUsado;
     }
 
     if (elGauge) {
-      elGauge.style.width = Math.min(totais.pct, 100) + '%';
-      if (totais.pct >= 90)      elGauge.style.background = 'linear-gradient(90deg,#EF4444,#B91C1C)';
-      else if (totais.pct >= 75) elGauge.style.background = 'linear-gradient(90deg,#F97316,#EA580C)';
-      else if (totais.pct >= 50) elGauge.style.background = 'linear-gradient(90deg,#F59E0B,#D97706)';
-      else                       elGauge.style.background = 'linear-gradient(90deg,#22C55E,#16A34A)';
+      elGauge.style.width = Math.min(pctReal, 100) + '%';
+      if (pctReal >= 90)      elGauge.style.background = 'linear-gradient(90deg,#EF4444,#B91C1C)';
+      else if (pctReal >= 75) elGauge.style.background = 'linear-gradient(90deg,#F97316,#EA580C)';
+      else if (pctReal >= 50) elGauge.style.background = 'linear-gradient(90deg,#F59E0B,#D97706)';
+      else                    elGauge.style.background = 'linear-gradient(90deg,#22C55E,#16A34A)';
     }
 
     // Atualizar Resumo do Mês
@@ -73,12 +89,12 @@ const ChartsUpdate = {
     const elFixos  = document.getElementById('resumo-fixos');
     const elVar    = document.getElementById('resumo-variaveis');
     const elDisp   = document.getElementById('resumo-disponivel');
-    if (elRenda)  elRenda.textContent  = fmtBRL(totais.receita);
+    if (elRenda)  elRenda.textContent  = fmtBRL(receitaExibir);
     if (elFixos)  elFixos.textContent  = '- ' + fmtBRL(totais.fixos);
     if (elVar)    elVar.textContent    = '- ' + fmtBRL(totais.variaveis);
     if (elDisp) {
-      elDisp.textContent = fmtBRL(totais.disponivel);
-      elDisp.style.color = totais.disponivel >= 0 ? 'var(--color-positive)' : '#EF4444';
+      elDisp.textContent = fmtBRL(disponivelReal);
+      elDisp.style.color = disponivelReal >= 0 ? 'var(--color-positive)' : '#EF4444';
     }
 
     // Últimos Lançamentos (6 mais recentes)

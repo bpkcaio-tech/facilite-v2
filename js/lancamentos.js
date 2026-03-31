@@ -66,8 +66,8 @@ const LancamentosPage = {
 
     FaciliteStorage.set('receita', { mensal: valor, nomeReceita: nome, diaRecebimento: dia });
 
-    // Sincronizar receita com Supabase
-    if (window.FaciliteSync) {
+    // Salvar receita no Supabase imediatamente
+    if (window.FaciliteSync && FaciliteSync.ready) {
       FaciliteSync.salvarDadosUsuario();
     }
 
