@@ -704,7 +704,10 @@ const LancamentosPage = {
     const parcelado   = document.getElementById('lanc-parcelado')?.checked || false;
     const numParcelas = parcelado ? (parseInt(document.getElementById('lanc-num-parcelas')?.value) || 0) : 0;
 
+    var novoId = FaciliteStorage.uid('lanc');
+
     const lancBase = {
+      id: novoId,
       descricao, valor, categoria: this.tipoLanc === 'reserva' ? 'Reserva' : categoria,
       tipo: this.tagLanc, data,
       formaPagamento: forma, cartaoId, recorrente,

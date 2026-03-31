@@ -83,35 +83,34 @@ const FaciliteStorage = {
   addLancamento(dados) {
     const todos = this.get('lancamentos') || [];
     const dt = dados.data ? new Date(dados.data + 'T12:00:00') : new Date();
-    const lanc = {
-      id: 'l' + Date.now(),
-      descricao: dados.descricao || 'Lançamento',
-      valor: dados.valor,
-      categoria: dados.categoria || 'Outros',
-      tipo: dados.tipo || this.defaultData.categorias[dados.categoria] || 'variavel',
-      data: dados.data || dt.toISOString().split('T')[0],
-      mes: dt.getMonth() + 1,
-      ano: dt.getFullYear(),
-      formaPagamento: dados.formaPagamento || 'debito',
-      cartaoId: dados.cartaoId || null,
-      status: dados.status || 'pago',
-      recorrente: dados.recorrente || false,
-      diaVencimento: dados.diaVencimento || null,
-    };
-    todos.unshift(lanc);
+    const novo = Object.assign({}, dados);
+    if (!novo.id) novo.id = 'l' + Date.now();
+    novo.descricao = novo.descricao || 'Lançamento';
+    novo.valor = novo.valor;
+    novo.categoria = novo.categoria || 'Outros';
+    novo.tipo = novo.tipo || this.defaultData.categorias[novo.categoria] || 'variavel';
+    novo.data = novo.data || dt.toISOString().split('T')[0];
+    novo.mes = novo.mes || dt.getMonth() + 1;
+    novo.ano = novo.ano || dt.getFullYear();
+    novo.formaPagamento = novo.formaPagamento || 'debito';
+    novo.cartaoId = novo.cartaoId || null;
+    novo.status = novo.status || 'pago';
+    novo.recorrente = novo.recorrente || false;
+    novo.diaVencimento = novo.diaVencimento || null;
+    todos.unshift(novo);
     this.set('lancamentos', todos);
-
+    
     // Atualizar saldos das contas
-    if (lanc.formaPagamento === 'cartao' && lanc.cartaoId) {
+    if (novo.formaPagamento === 'cartao' && novo.cartaoId) {
       const cartoes = this.get('cartoes');
-      const c = cartoes.find(x => x.id === lanc.cartaoId);
+      const c = cartoes.find(x => x.id === novo.cartaoId);
       if (c) {
-        c.limiteDisponivel = Math.max(0, c.limiteDisponivel + lanc.valor);
+        c.limiteDisponivel = Math.max(0, c.limiteDisponivel + novo.valor);
         this.set('cartoes', cartoes);
       }
     }
 
-    return lanc;
+    return novo;
   },
 
   removeLancamento(id) {
