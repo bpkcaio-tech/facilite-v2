@@ -88,6 +88,26 @@ const LancamentosPage = {
         data: dataStr, formaPagamento: 'pix', status: 'pago',
         recorrente: true, diaVencimento: dia,
       });
+
+      if (window.FaciliteSync) {
+        var lancReceitaSync = {
+          id: FaciliteStorage.uid('lanc'),
+          descricao: nome,
+          valor: valor,
+          categoria: 'Receita',
+          tipo: 'fixo',
+          data: dataStr,
+          mes: mes,
+          ano: ano,
+          formaPagamento: 'pix',
+          status: 'pago',
+          recorrente: true,
+          diaVencimento: dia,
+        };
+        FaciliteSync.adicionarLancamento(lancReceitaSync).then(function(ok) {
+          if (ok) console.log('[Sync] Receita fixa sincronizada com Supabase');
+        });
+      }
     }
 
     var mrf = document.getElementById('modal-receita-fixa');

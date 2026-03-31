@@ -282,3 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.ChartsUpdate = ChartsUpdate;
+window.atualizarCards = function() {
+  ChartsUpdate.atualizarCards();
+};
