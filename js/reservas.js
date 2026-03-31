@@ -344,6 +344,7 @@ const ReservasPage = {
     }
 
     FaciliteStorage.set('reservas', reservas);
+    if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
     this.fecharModal();
     this.render();
     FaciliteState.refresh();
@@ -355,6 +356,7 @@ const ReservasPage = {
     if (!confirm('Remover esta reserva?')) return;
     const reservas = FaciliteStorage.get('reservas') || [];
     FaciliteStorage.set('reservas', reservas.filter(r => r.id !== id));
+    if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
     this.render();
     FaciliteState.refresh();
     FaciliteNotify.success('Reserva removida.');
@@ -426,6 +428,7 @@ const ReservasPage = {
     }
 
     FaciliteStorage.set('reservas', reservas);
+    if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
     document.getElementById('modal-reserva-valor').style.display = 'none';
     this.render();
     FaciliteState.refresh();

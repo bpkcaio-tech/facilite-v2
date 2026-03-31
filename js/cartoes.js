@@ -201,6 +201,7 @@ const CartoesPage = {
     }
 
     FaciliteStorage.set('cartoes', cartoes);
+    if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
     this.fecharModal();
     this.render();
     FaciliteState.refresh();
@@ -212,6 +213,7 @@ const CartoesPage = {
     if (!confirm('Remover este cartão?')) return;
     const cartoes = FaciliteStorage.get('cartoes') || [];
     FaciliteStorage.set('cartoes', cartoes.filter(c => c.id !== id));
+    if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
     this.render();
     FaciliteState.refresh();
     FaciliteNotify.success('Cartão removido.');

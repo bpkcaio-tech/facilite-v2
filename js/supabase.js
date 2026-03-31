@@ -5,32 +5,13 @@
 var SUPABASE_URL = 'https://ugoozmapozlwtijaveru.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnb296bWFwb3psd3RpamF2ZXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MjIzMzgsImV4cCI6MjA5MDM5ODMzOH0.BZtq3wxBMIOhJ3iAqgPxN96PNxyKAj9R73_LvC25cek';
 
-// Lista de IDs excluídos localmente — impede que o sync traga de volta
-var _idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
-
-function registrarExclusao(id) {
-  if (!_idsExcluidos.includes(id)) {
-    _idsExcluidos.push(id);
-    localStorage.setItem('facilite_ids_excluidos', JSON.stringify(_idsExcluidos));
-  }
-}
-
-function limparExcluidos(idsDoServidor) {
-  // Remove da lista negra IDs que já não existem mais no servidor
-  _idsExcluidos = _idsExcluidos.filter(function(id) {
-    return idsDoServidor.includes(id);
-  });
-  localStorage.setItem('facilite_ids_excluidos', JSON.stringify(_idsExcluidos));
-}
-
 window.FaciliteSync = {
 
   _carregando: false,
   _refreshTimer: null,
-  _operacaoEmAndamento: false,  // <- ADICIONAR ESTA LINHA
-  _idsExcluidos: [],
+  _salvandoDados: false,
 
-  // ── Headers padrão ─────────────────────────────
+  // ── Headers ────────────────────────────────────
   _h: function() {
     return {
       'Content-Type': 'application/json',
@@ -40,7 +21,7 @@ window.FaciliteSync = {
     };
   },
 
-  // ── ID do usuário logado ───────────────────────
+  // ── ID do usuário ──────────────────────────────
   _userId: function() {
     try {
       var s = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
@@ -48,85 +29,107 @@ window.FaciliteSync = {
     } catch(e) { return null; }
   },
 
-  // ── Atualiza UI uma única vez (debounce) ───────
+  // ── Debounce UI ───────────────────────────────
   _refreshUI: function() {
     if (this._refreshTimer) clearTimeout(this._refreshTimer);
     this._refreshTimer = setTimeout(function() {
-      var scrollY = window.scrollY || window.pageYOffset || 0;
-
+      var scrollY = window.scrollY || 0;
       if (typeof window.atualizarCards === 'function') window.atualizarCards();
       if (typeof FaciliteState !== 'undefined') FaciliteState.refresh();
       if (
         typeof LancamentosPage !== 'undefined' &&
         window.FaciliteRouter &&
         FaciliteRouter.currentPage === 'lancamentos'
-      ) {
-        LancamentosPage.render();
-      }
-
-      requestAnimationFrame(function() {
-        window.scrollTo(0, scrollY);
-      });
+      ) LancamentosPage.render();
+      requestAnimationFrame(function() { window.scrollTo(0, scrollY); });
     }, 200);
   },
 
   // ══════════════════════════════════════════════
-  //  CARREGAR TUDO (Supabase → localStorage → UI)
+  //  CARREGAR TUDO — lançamentos + dados_usuario
   // ══════════════════════════════════════════════
   carregarTudo: async function(forcar) {
     var uid = this._userId();
     if (!uid) return;
     if (this._carregando && !forcar) return;
-    // Nunca sincronizar durante uma operação de escrita/exclusão
-    if (this._operacaoEmAndamento) return;
     this._carregando = true;
 
     try {
+      // ── 1. Lançamentos ──────────────────────────
       var rLanc = await fetch(
         SUPABASE_URL + '/rest/v1/lancamentos?user_id=eq.' + uid + '&order=data.desc&limit=1000',
         { headers: this._h() }
       );
 
       if (rLanc.ok) {
-        var dados = await rLanc.json();
-        if (Array.isArray(dados)) {
+        var lancamentos = await rLanc.json();
+        if (Array.isArray(lancamentos)) {
+          // Lista negra: IDs excluídos localmente
           var idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
-          var idsServidor = dados.map(function(l) { return l.id; });
+          var idsServidor = lancamentos.map(function(l) { return l.id; });
 
-          // Filtrar itens que estão na lista negra
-          var dadosFiltrados = dados.filter(function(l) {
+          var filtrados = lancamentos.filter(function(l) {
             return !idsExcluidos.includes(l.id);
           });
 
-          // Limpar da lista negra SOMENTE os IDs que o servidor já não retorna mais
-          // (isso confirma que o DELETE foi processado de verdade)
-          var listaAtualizada = idsExcluidos.filter(function(id) {
-            // Manter na lista negra se o servidor AINDA retornar o item
+          // Limpar lista negra: remover IDs que o servidor já não tem
+          var listaLimpa = idsExcluidos.filter(function(id) {
             return idsServidor.includes(id);
           });
-          localStorage.setItem('facilite_ids_excluidos', JSON.stringify(listaAtualizada));
+          localStorage.setItem('facilite_ids_excluidos', JSON.stringify(listaLimpa));
 
-          if (window.FaciliteStorage) {
-            FaciliteStorage.set('lancamentos', dadosFiltrados);
+          if (filtrados.length > 0 && window.FaciliteStorage) {
+            FaciliteStorage.set('lancamentos', filtrados);
+            console.log('[Sync] ' + filtrados.length + ' lancamentos carregados');
+          } else if (lancamentos.length === 0) {
+            // Servidor vazio — tentar subir dados locais
+            var local = window.FaciliteStorage ? (FaciliteStorage.get('lancamentos') || []) : [];
+            if (local.length > 0) {
+              console.log('[Sync] Supabase vazio, subindo ' + local.length + ' lancamentos locais...');
+              this._subirLancamentosLocais(local);
+            }
           }
-
-          console.log('[Sync] ' + dadosFiltrados.length + ' lancamentos. Lista negra: ' + listaAtualizada.length + ' ids');
         }
       }
 
-      var rRec = await fetch(
-        SUPABASE_URL + '/rest/v1/receitas?user_id=eq.' + uid + '&order=ano.desc,mes.desc&limit=1',
+      // ── 2. Dados do usuário (receita, cartões, assinaturas, reservas, categorias) ──
+      var rDados = await fetch(
+        SUPABASE_URL + '/rest/v1/dados_usuario?user_id=eq.' + uid,
         { headers: this._h() }
       );
-      if (rRec.ok) {
-        var receitas = await rRec.json();
-        if (Array.isArray(receitas) && receitas.length > 0 && window.FaciliteStorage) {
-          var recAtual = FaciliteStorage.get('receita') || {};
-          FaciliteStorage.set('receita', {
-            mensal: receitas[0].valor,
-            nomeReceita: recAtual.nomeReceita || 'Salario',
-            diaRecebimento: recAtual.diaRecebimento || 5
-          });
+
+      if (rDados.ok) {
+        var dadosArr = await rDados.json();
+        if (Array.isArray(dadosArr) && dadosArr.length > 0) {
+          var dados = dadosArr[0];
+
+          if (window.FaciliteStorage) {
+            // Receita mensal
+            if (dados.receita && dados.receita.mensal) {
+              FaciliteStorage.set('receita', dados.receita);
+              console.log('[Sync] Receita carregada: R$' + dados.receita.mensal);
+            }
+            // Cartões
+            if (Array.isArray(dados.cartoes) && dados.cartoes.length > 0) {
+              FaciliteStorage.set('cartoes', dados.cartoes);
+            }
+            // Assinaturas
+            if (Array.isArray(dados.assinaturas) && dados.assinaturas.length > 0) {
+              FaciliteStorage.set('assinaturas', dados.assinaturas);
+            }
+            // Reservas
+            if (Array.isArray(dados.reservas) && dados.reservas.length > 0) {
+              FaciliteStorage.set('reservas', dados.reservas);
+            }
+            // Categorias
+            if (dados.categorias && Object.keys(dados.categorias).length > 0) {
+              FaciliteStorage.set('categorias', dados.categorias);
+            }
+          }
+        } else {
+          // Não existe ainda no servidor — subir dados locais
+          console.log('[Sync] Dados usuario nao encontrados, subindo dados locais...');
+          this.salvarDadosUsuario();
         }
       }
 
@@ -136,6 +139,49 @@ window.FaciliteSync = {
       console.warn('[Sync] Erro ao carregar:', e.message);
     } finally {
       this._carregando = false;
+    }
+  },
+
+  // ══════════════════════════════════════════════
+  //  SALVAR DADOS DO USUÁRIO (receita, cartões, etc)
+  //  Chamar sempre que qualquer dado desses mudar
+  // ══════════════════════════════════════════════
+  salvarDadosUsuario: async function() {
+    var uid = this._userId();
+    if (!uid || this._salvandoDados) return;
+    this._salvandoDados = true;
+
+    try {
+      var dados = {
+        user_id: uid,
+        receita: window.FaciliteStorage ? (FaciliteStorage.get('receita') || {}) : {},
+        cartoes: window.FaciliteStorage ? (FaciliteStorage.get('cartoes') || []) : [],
+        assinaturas: window.FaciliteStorage ? (FaciliteStorage.get('assinaturas') || []) : [],
+        reservas: window.FaciliteStorage ? (FaciliteStorage.get('reservas') || []) : [],
+        categorias: window.FaciliteStorage ? (FaciliteStorage.get('categorias') || {}) : {},
+        atualizado_em: new Date().toISOString()
+      };
+
+      var r = await fetch(
+        SUPABASE_URL + '/rest/v1/dados_usuario?on_conflict=user_id',
+        {
+          method: 'POST',
+          headers: Object.assign({}, this._h(), {
+            'Prefer': 'resolution=merge-duplicates,return=representation'
+          }),
+          body: JSON.stringify(dados)
+        }
+      );
+
+      if (r.ok) {
+        console.log('[Sync] Dados usuario salvos (receita, cartoes, assinaturas, reservas)');
+      } else {
+        console.warn('[Sync] Erro ao salvar dados usuario:', r.status);
+      }
+    } catch(e) {
+      console.warn('[Sync] Erro salvarDadosUsuario:', e.message);
+    } finally {
+      this._salvandoDados = false;
     }
   },
 
@@ -170,7 +216,7 @@ window.FaciliteSync = {
 
       if (!r.ok) {
         var err = await r.json().catch(function() { return {}; });
-        console.warn('[Sync] Erro ao adicionar:', r.status, err);
+        console.warn('[Sync] Erro ao adicionar:', r.status, JSON.stringify(err));
         return false;
       }
 
@@ -191,7 +237,7 @@ window.FaciliteSync = {
     var uid = this._userId();
     if (!uid) return false;
 
-    // 1. Adicionar à lista negra IMEDIATAMENTE — nunca remover daqui até confirmar que sumiu do servidor
+    // Adicionar à lista negra IMEDIATAMENTE
     var idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');
     if (!idsExcluidos.includes(id)) {
       idsExcluidos.push(id);
@@ -199,30 +245,17 @@ window.FaciliteSync = {
     }
 
     try {
-      // 2. Tentar DELETE só pelo ID (sem filtro de user_id para evitar mismatch)
       var r = await fetch(
         SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id,
         { method: 'DELETE', headers: this._h() }
       );
 
       if (r.ok) {
-        console.log('[Sync] DELETE enviado para Supabase, id:', id);
-        // NÃO remover da lista negra aqui — o carregarTudo vai remover
-        // quando confirmar que o item não está mais no servidor
+        console.log('[Sync] Excluido:', id);
       } else {
-        console.warn('[Sync] Erro no DELETE:', r.status);
+        console.warn('[Sync] Erro ao excluir:', r.status);
       }
-
-      // Log temporário para diagnóstico — remover após confirmar que funciona
-      var check = await fetch(
-        SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id,
-        { headers: this._h() }
-      );
-      var checkDados = await check.json();
-      console.log('[Sync] Verificação pós-DELETE — item ainda no servidor?', checkDados.length > 0 ? 'SIM (problema!)' : 'NÃO (ok)');
-
       return r.ok;
-
     } catch(e) {
       console.warn('[Sync] Erro excluir:', e.message);
       return false;
@@ -234,66 +267,43 @@ window.FaciliteSync = {
   // ══════════════════════════════════════════════
   editarLancamento: async function(id, dados) {
     if (!id) return false;
-    var uid = this._userId();
-    if (!uid) return false;
-
     try {
-      var body = {
-        descricao: dados.descricao,
-        valor: dados.valor,
-        categoria: dados.categoria,
-        tipo: dados.tipo,
-        data: dados.data,
-        mes: dados.mes,
-        ano: dados.ano,
-        forma_pagamento: dados.formaPagamento,
-        status: dados.status,
-        recorrente: dados.recorrente
-      };
-
       var r = await fetch(
-        SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id + '&user_id=eq.' + uid,
+        SUPABASE_URL + '/rest/v1/lancamentos?id=eq.' + id,
         {
           method: 'PATCH',
           headers: this._h(),
-          body: JSON.stringify(body)
+          body: JSON.stringify({
+            descricao: dados.descricao,
+            valor: dados.valor,
+            categoria: dados.categoria,
+            tipo: dados.tipo,
+            data: dados.data,
+            mes: dados.mes,
+            ano: dados.ano,
+            forma_pagamento: dados.formaPagamento,
+            status: dados.status,
+            recorrente: dados.recorrente
+          })
         }
       );
-
-      if (!r.ok) {
-        console.warn('[Sync] Erro ao editar:', r.status);
-        return false;
-      }
-
-      console.log('[Sync] Lancamento editado:', id);
-      return true;
-
+      if (r.ok) console.log('[Sync] Editado:', id);
+      return r.ok;
     } catch(e) {
-      console.warn('[Sync] Erro ao editar:', e.message);
+      console.warn('[Sync] Erro editar:', e.message);
       return false;
     }
   },
 
   // ══════════════════════════════════════════════
-  //  SALVAR RECEITA
+  //  SALVAR RECEITA (atalho que chama salvarDadosUsuario)
   // ══════════════════════════════════════════════
   salvarReceita: async function(valor) {
-    var uid = this._userId();
-    if (!uid) return;
-    var mes = new Date().getMonth() + 1;
-    var ano = new Date().getFullYear();
-    try {
-      await fetch(
-        SUPABASE_URL + '/rest/v1/receitas?on_conflict=user_id,mes,ano',
-        {
-          method: 'POST',
-          headers: Object.assign({}, this._h(), { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
-          body: JSON.stringify({ user_id: uid, valor: valor, mes: mes, ano: ano })
-        }
-      );
-    } catch(e) {
-      console.warn('[Sync] Erro receita:', e.message);
+    if (window.FaciliteStorage) {
+      var recAtual = FaciliteStorage.get('receita') || {};
+      FaciliteStorage.set('receita', Object.assign({}, recAtual, { mensal: valor }));
     }
+    await this.salvarDadosUsuario();
   },
 
   // ══════════════════════════════════════════════
@@ -306,23 +316,31 @@ window.FaciliteSync = {
         SUPABASE_URL + '/rest/v1/usuarios?on_conflict=id',
         {
           method: 'POST',
-          headers: Object.assign({}, this._h(), { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
+          headers: Object.assign({}, this._h(), {
+            'Prefer': 'resolution=merge-duplicates,return=representation'
+          }),
           body: JSON.stringify({
-            id: u.id,
-            nome: u.nome,
-            email: u.email,
-            foto: u.foto,
-            provider: u.provider,
-            plano: u.plano || 'gratuito'
+            id: u.id, nome: u.nome, email: u.email,
+            foto: u.foto, provider: u.provider, plano: u.plano || 'gratuito'
           })
         }
       );
     } catch(e) {
       console.warn('[Sync] Erro usuario:', e.message);
     }
+  },
+
+  // ══════════════════════════════════════════════
+  //  SUBIR LANÇAMENTOS LOCAIS AO SUPABASE
+  // ══════════════════════════════════════════════
+  _subirLancamentosLocais: async function(lancamentos) {
+    var uid = this._userId();
+    if (!uid) return;
+    for (var i = 0; i < lancamentos.length; i++) {
+      var l = lancamentos[i];
+      if (l.id) await this.adicionarLancamento(l);
+    }
+    console.log('[Sync] Upload local concluido');
   }
 
 };
-
-  // Inicializar lista negra de IDs excluídos
-  window.FaciliteSync._idsExcluidos = JSON.parse(localStorage.getItem('facilite_ids_excluidos') || '[]');

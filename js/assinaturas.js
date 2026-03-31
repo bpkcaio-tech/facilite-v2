@@ -183,6 +183,7 @@ const AssinaturasPage = {
       diaVencimento: dia, categoria, ativa: true,
     });
     FaciliteStorage.set('assinaturas', subs);
+    if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
 
     // Criar lançamento recorrente fixo
     FaciliteStorage.addLancamento({
@@ -209,6 +210,7 @@ const AssinaturasPage = {
 
     s.ativa = !s.ativa;
     FaciliteStorage.set('assinaturas', subs);
+    if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
 
     const lancamentos = FaciliteStorage.get('lancamentos') || [];
     if (!s.ativa) {
@@ -245,6 +247,7 @@ const AssinaturasPage = {
     }
 
     FaciliteStorage.set('assinaturas', subs.filter(s => s.id !== id));
+    if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
     this.render();
     FaciliteState.refresh();
     FaciliteNotify.success('Assinatura e lançamentos removidos.');

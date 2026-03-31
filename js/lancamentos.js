@@ -68,7 +68,7 @@ const LancamentosPage = {
 
     // Sincronizar receita com Supabase
     if (window.FaciliteSync) {
-      FaciliteSync.salvarReceita(valor).catch(function(e) { console.warn('Sync receita:', e); });
+      FaciliteSync.salvarDadosUsuario();
     }
 
     // Criar/atualizar lançamento recorrente de receita no mês atual
