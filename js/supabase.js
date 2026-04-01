@@ -427,7 +427,8 @@ window.FaciliteSync = {
           }),
           body: JSON.stringify({
             id: u.id, nome: u.nome, email: u.email,
-            foto: u.foto, provider: u.provider, plano: u.plano || 'gratuito'
+            foto: u.foto, provider: u.provider, plano: u.plano || 'gratuito',
+            plano_expira: u.planoExpira || null
           })
         }
       );
