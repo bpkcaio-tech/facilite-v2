@@ -171,7 +171,7 @@ const DashNav = {
           'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
 
   init() {
-    this._atualizarLabel();
+    this.javascript_atualizarLabel();
   },
 
   mesAnterior() {
@@ -179,7 +179,7 @@ const DashNav = {
     let a = FaciliteState.anoAtual;
     if (m < 1) { m = 12; a--; }
     FaciliteState.setMes(m, a);
-    this._atualizarLabel();
+    this.javascript_atualizarLabel();
     if (typeof window.atualizarCards === 'function') window.atualizarCards();
   },
 
@@ -188,18 +188,29 @@ const DashNav = {
     let a = FaciliteState.anoAtual;
     if (m > 12) { m = 1; a++; }
     FaciliteState.setMes(m, a);
-    this._atualizarLabel();
+    this.javascript_atualizarLabel();
     if (typeof window.atualizarCards === 'function') window.atualizarCards();
   },
 
-  _atualizarLabel() {
+  javascript_atualizarLabel() {
     const el = document.getElementById('dash-mes-label');
     if (!el) return;
-    el.textContent = this.MESES[FaciliteState.mesAtual - 1] + ' ' + FaciliteState.anoAtual;
     const hoje = new Date();
     const ehMesAtual = FaciliteState.mesAtual === (hoje.getMonth() + 1) &&
                        FaciliteState.anoAtual === hoje.getFullYear();
-    el.style.color = ehMesAtual ? '#F0FDF4' : '#22C55E';
+
+    // Animação de troca
+    el.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-4px)';
+
+    setTimeout(() => {
+      el.textContent = this.MESES[FaciliteState.mesAtual - 1] + ' ' + FaciliteState.anoAtual;
+      el.style.color = ehMesAtual ? '#9CA3AF' : '#22C55E';
+      el.style.fontWeight = ehMesAtual ? '500' : '700';
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }, 150);
   },
 };
 

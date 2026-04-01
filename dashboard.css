@@ -2112,3 +2112,8 @@ html, body {
   box-shadow: 0 0 8px rgba(239,68,68,0.4);
   animation: notifSlideIn 0.2s ease;
 }
+
+#dash-mes-label {
+  transition: opacity 0.15s ease, transform 0.15s ease, color 0.2s ease;
+  letter-spacing: 0.3px;
+}
