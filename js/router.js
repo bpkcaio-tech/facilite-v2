@@ -113,6 +113,10 @@ const FaciliteRouter = {
       }
     }
 
+    if (window.DashNav) {
+      DashNav.mostrar(page === 'dashboard');
+    }
+
     if (pushState) {
       history.pushState({ page }, '', '#' + page);
     }

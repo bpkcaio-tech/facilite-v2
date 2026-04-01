@@ -212,6 +212,11 @@ const DashNav = {
       el.style.transform = 'translateY(0)';
     }, 150);
   },
+
+  mostrar(visivel) {
+    const el = document.getElementById('dash-nav-mes');
+    if (el) el.style.display = visivel ? 'flex' : 'none';
+  },
 };
 
 window.DashNav = DashNav;
