@@ -185,21 +185,26 @@ window.FaciliteSync = {
           localStorage.setItem('facilite_dados_uid', uid);
 
         } else {
-          // Servidor sem dados — verificar se dados locais pertencem a este usuário
+          // Servidor sem dados
           var uidSalvo = localStorage.getItem('facilite_dados_uid');
 
-          if (!uidSalvo) {
-            // Primeiro acesso — conta nova, não subir nada
+          if (resetRemotoDetectado) {
+            // Reset foi feito em outro dispositivo — NÃO subir dados locais
+            // O Supabase foi limpo de propósito
+            console.log('[Sync] Reset remoto confirmado — nao subir dados locais');
+            localStorage.setItem('facilite_dados_uid', uid);
+          } else if (!uidSalvo) {
+            // Primeiro acesso — conta nova
             console.log('[Sync] Conta nova — iniciando zerada');
             localStorage.setItem('facilite_dados_uid', uid);
           } else if (uidSalvo !== uid) {
-            // Dados locais são de outro usuário — limpar tudo
-            console.log('[Sync] Dados de outro usuario detectados — limpando...');
+            // Dados de outro usuário — limpar
+            console.log('[Sync] Dados de outro usuario — limpando...');
             if (window.FaciliteStorage) FaciliteStorage.reset();
             localStorage.removeItem('facilite_ids_excluidos');
             localStorage.setItem('facilite_dados_uid', uid);
           } else {
-            // Dados locais pertencem a este usuário — pode subir
+            // Mesmo usuário, Supabase vazio, sem reset — subir dados locais
             console.log('[Sync] Subindo dados locais do usuario...');
             this.ready = true;
             await this.salvarDadosUsuario();
