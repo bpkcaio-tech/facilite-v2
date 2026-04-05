@@ -35,46 +35,99 @@ const AssinaturasPage = {
 
   init() { this.render(); },
 
+  // ── Criar lançamentos para os próximos N meses ─────
+  _criarLancamentosMeses(nome, valor, dia, meses) {
+    meses = meses || 12;
+    const hoje = new Date();
+    const criados = [];
+
+    for (let i = 0; i < meses; i++) {
+      const dataLanc = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+      const mesLanc = dataLanc.getMonth() + 1;
+      const anoLanc = dataLanc.getFullYear();
+      const diaReal = Math.min(dia, 28);
+      const dataStr = anoLanc + '-' + String(mesLanc).padStart(2, '0') + '-' + String(diaReal).padStart(2, '0');
+
+      // Verificar se já existe
+      const todos = FaciliteStorage.get('lancamentos') || [];
+      const jaExiste = todos.some(function(l) {
+        return l.descricao === nome &&
+               l.categoria === 'Assinaturas' &&
+               l.mes === mesLanc &&
+               l.ano === anoLanc;
+      });
+      if (jaExiste) continue;
+
+      const novoLanc = {
+        id: FaciliteStorage.uid('lanc'),
+        descricao: nome,
+        valor: -Math.abs(valor),
+        categoria: 'Assinaturas',
+        tipo: 'fixo',
+        data: dataStr,
+        mes: mesLanc,
+        ano: anoLanc,
+        formaPagamento: 'debito',
+        recorrente: true,
+        diaVencimento: dia,
+        status: 'pendente',
+      };
+
+      const salvo = FaciliteStorage.addLancamento(novoLanc);
+
+      // Sync Supabase
+      if (window.FaciliteSync) {
+        FaciliteSync.adicionarLancamento(novoLanc);
+      }
+
+      criados.push(novoLanc);
+      console.log('[Assinaturas] Lançamento criado:', nome, mesLanc + '/' + anoLanc);
+    }
+
+    return criados;
+  },
+
+  // ── Remover lançamentos futuros de uma assinatura ──
+  _removerLancamentosFuturos(nome) {
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth() + 1;
+    const anoAtual = hoje.getFullYear();
+
+    const todos = FaciliteStorage.get('lancamentos') || [];
+
+    // Identificar lançamentos futuros desta assinatura (mês atual em diante)
+    const paraRemover = todos.filter(function(l) {
+      if (!(l.descricao === nome && l.categoria === 'Assinaturas' && l.recorrente)) return false;
+      if (l.ano > anoAtual) return true;
+      if (l.ano === anoAtual && l.mes >= mesAtual) return true;
+      return false;
+    });
+
+    // Remover do localStorage
+    const restantes = todos.filter(function(l) {
+      return !(l.descricao === nome && l.categoria === 'Assinaturas' && l.recorrente &&
+        (l.ano > anoAtual || (l.ano === anoAtual && l.mes >= mesAtual)));
+    });
+    FaciliteStorage.set('lancamentos', restantes);
+
+    // Remover do Supabase
+    if (window.FaciliteSync) {
+      paraRemover.forEach(function(l) {
+        FaciliteSync.excluirLancamento(l.id);
+      });
+    }
+
+    console.log('[Assinaturas] Removidos', paraRemover.length, 'lançamentos futuros de', nome);
+  },
+
+  // ── Garantir lançamento do mês atual (para sync entre dispositivos) ──
   garantirLancamentosMesAtual() {
     const subs = FaciliteStorage.get('assinaturas') || [];
-    const ativas = subs.filter(s => s.ativa);
+    const ativas = subs.filter(function(s) { return s.ativa; });
     if (ativas.length === 0) return;
 
-    const mes = new Date().getMonth() + 1;
-    const ano = new Date().getFullYear();
-    const lancamentos = FaciliteStorage.get('lancamentos') || [];
-
-    ativas.forEach(s => {
-      const jaExiste = lancamentos.some(l =>
-        l.descricao === s.nome &&
-        l.categoria === 'Assinaturas' &&
-        l.mes === mes &&
-        l.ano === ano
-      );
-
-      if (!jaExiste) {
-        const dia = Math.min(s.diaVencimento || 5, 28);
-        const dataStr = ano + '-' + String(mes).padStart(2, '0') + '-' + String(dia).padStart(2, '0');
-        const novoLanc = {
-          id: FaciliteStorage.uid('lanc'),
-          descricao: s.nome,
-          valor: -Math.abs(s.valor),
-          categoria: 'Assinaturas',
-          tipo: 'fixo',
-          data: dataStr,
-          mes: mes,
-          ano: ano,
-          formaPagamento: 'debito',
-          recorrente: true,
-          diaVencimento: s.diaVencimento || 5,
-          status: 'pendente',
-        };
-        FaciliteStorage.addLancamento(novoLanc);
-        if (window.FaciliteSync && FaciliteSync.ready) {
-          FaciliteSync.adicionarLancamento(novoLanc);
-        }
-        console.log('[Assinaturas] Lançamento criado para', s.nome, mes + '/' + ano);
-      }
+    ativas.forEach(function(s) {
+      AssinaturasPage._criarLancamentosMeses(s.nome, s.valor, s.diaVencimento || 5, 12);
     });
   },
 
@@ -173,7 +226,6 @@ const AssinaturasPage = {
       `;
     }
 
-    // Mostrar campos customizados se for "Personalizado"
     const customFields = document.getElementById('sub-custom-fields');
     if (customFields) customFields.style.display = p.nome === 'Personalizado' ? 'block' : 'none';
 
@@ -214,62 +266,29 @@ const AssinaturasPage = {
 
     const subs = FaciliteStorage.get('assinaturas') || [];
 
-    // Verificar duplicata
     if (subs.some(s => s.nome === nome && s.ativa)) {
       FaciliteNotify.warning(`${nome} já está nas suas assinaturas.`);
       return;
     }
 
+    // Salvar assinatura
     subs.push({
       id: FaciliteStorage.uid('s'),
       nome, icone, cor, valor,
       diaVencimento: dia, categoria, ativa: true,
     });
     FaciliteStorage.set('assinaturas', subs);
+
+    // Sync assinaturas no Supabase
     if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
 
-    // Criar lançamentos para os próximos 12 meses
-    const hoje = new Date();
-    for (let i = 0; i < 12; i++) {
-      const dataLanc = new Date(hoje.getFullYear(), hoje.getMonth() + i, Math.min(dia, 28));
-      const mesLanc = dataLanc.getMonth() + 1;
-      const anoLanc = dataLanc.getFullYear();
-      const dataStr = anoLanc + '-' + String(mesLanc).padStart(2,'0') + '-' + String(Math.min(dia,28)).padStart(2,'0');
-
-      // Verificar se já existe lançamento desse mês
-      const lancamentos = FaciliteStorage.get('lancamentos') || [];
-      const jaExiste = lancamentos.some(l =>
-        l.descricao === nome && l.categoria === 'Assinaturas' &&
-        l.mes === mesLanc && l.ano === anoLanc
-      );
-      if (jaExiste) continue;
-
-      const novoLanc = {
-        id: FaciliteStorage.uid('lanc'),
-        descricao: nome,
-        valor: -Math.abs(valor),
-        categoria: 'Assinaturas',
-        tipo: 'fixo',
-        data: dataStr,
-        mes: mesLanc,
-        ano: anoLanc,
-        formaPagamento: 'debito',
-        recorrente: true,
-        diaVencimento: dia,
-        status: 'pendente',
-      };
-
-      FaciliteStorage.addLancamento(novoLanc);
-
-      if (window.FaciliteSync && FaciliteSync.ready) {
-        FaciliteSync.adicionarLancamento(novoLanc);
-      }
-    }
+    // Criar lançamentos para os próximos 12 meses e sincronizar com Supabase
+    this._criarLancamentosMeses(nome, valor, dia, 12);
 
     this.fecharModal();
     this.render();
     FaciliteState.refresh();
-    FaciliteNotify.success(`${nome} adicionada! ${fmtBRL(valor)}/mês`);
+    FaciliteNotify.success(`${nome} adicionada! ${fmtBRL(valor)}/mês — lançamentos criados para os próximos 12 meses.`);
   },
 
   toggleAtiva(id) {
@@ -281,20 +300,12 @@ const AssinaturasPage = {
     FaciliteStorage.set('assinaturas', subs);
     if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
 
-    const lancamentos = FaciliteStorage.get('lancamentos') || [];
     if (!s.ativa) {
-      // Pausar → remover lançamentos recorrentes
-      FaciliteStorage.set('lancamentos', lancamentos.filter(l =>
-        !(l.descricao === s.nome && l.categoria === 'Assinaturas' && l.recorrente)
-      ));
+      // Pausar → remover lançamentos futuros
+      this._removerLancamentosFuturos(s.nome);
     } else {
-      // Reativar → criar lançamento recorrente
-      FaciliteStorage.addLancamento({
-        descricao: s.nome, valor: -Math.abs(s.valor),
-        categoria: 'Assinaturas', tipo: 'fixo',
-        formaPagamento: 'debito', recorrente: true,
-        diaVencimento: s.diaVencimento, status: 'pendente',
-      });
+      // Reativar → criar lançamentos para os próximos 12 meses
+      this._criarLancamentosMeses(s.nome, s.valor, s.diaVencimento || 5, 12);
     }
 
     this.render();
@@ -303,32 +314,20 @@ const AssinaturasPage = {
   },
 
   remover(id) {
-    if (!confirm('Remover esta assinatura?')) return;
+    if (!confirm('Remover esta assinatura? Os lançamentos futuros também serão removidos.')) return;
     const subs = FaciliteStorage.get('assinaturas') || [];
     const sub = subs.find(s => s.id === id);
 
-    // Remover lançamentos recorrentes dessa assinatura
     if (sub) {
-      const lancamentos = FaciliteStorage.get('lancamentos') || [];
-
-      // Excluir lançamentos futuros do Supabase
-      if (window.FaciliteSync) {
-        const lancFuturos = lancamentos.filter(l =>
-          l.descricao === sub.nome && l.categoria === 'Assinaturas' && l.recorrente
-        );
-        lancFuturos.forEach(l => FaciliteSync.excluirLancamento(l.id));
-      }
-
-      FaciliteStorage.set('lancamentos', lancamentos.filter(l =>
-        !(l.descricao === sub.nome && l.categoria === 'Assinaturas' && l.recorrente)
-      ));
+      // Remover lançamentos futuros do localStorage e Supabase
+      this._removerLancamentosFuturos(sub.nome);
     }
 
     FaciliteStorage.set('assinaturas', subs.filter(s => s.id !== id));
     if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
     this.render();
     FaciliteState.refresh();
-    FaciliteNotify.success('Assinatura e lançamentos removidos.');
+    FaciliteNotify.success('Assinatura e lançamentos futuros removidos.');
   },
 };
 
