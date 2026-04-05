@@ -407,7 +407,7 @@
 
 <!-- Sync automático -->
 <script>
-  // Boot: espera usuário logado e faz primeiro sync
+  // Boot: aguarda usuário logado e inicia sync
   (function tentarSync() {
     if (window.FaciliteSync && FaciliteSync._userId && FaciliteSync._userId()) {
       FaciliteSync.carregarTudo(true);
@@ -416,13 +416,24 @@
     }
   })();
 
-  // Sync periódico a cada 30 segundos — SEM listeners de focus ou visibilitychange
-  // (esses listeners causam sync no momento errado durante exclusões)
+  // Sync ao voltar para a aba
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && window.FaciliteSync) {
+      FaciliteSync.carregarTudo(true);
+    }
+  });
+
+  // Sync a cada 30 segundos
   setInterval(function() {
-    if (window.FaciliteSync && !document.hidden && !FaciliteSync._operacaoEmAndamento) {
+    if (window.FaciliteSync && !document.hidden && !FaciliteSync._carregando) {
       FaciliteSync.carregarTudo(true);
     }
   }, 30000);
+
+  // Garantir assinaturas do mês após sync
+  setTimeout(function() {
+    if (window.AssinaturasPage) AssinaturasPage.garantirLancamentosMesAtual();
+  }, 3000);
 </script>
 
 <!-- Verificação de plano — roda DEPOIS de todos os scripts -->

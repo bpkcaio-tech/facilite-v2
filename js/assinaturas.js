@@ -35,6 +35,49 @@ const AssinaturasPage = {
 
   init() { this.render(); },
 
+  garantirLancamentosMesAtual() {
+    const subs = FaciliteStorage.get('assinaturas') || [];
+    const ativas = subs.filter(s => s.ativa);
+    if (ativas.length === 0) return;
+
+    const mes = new Date().getMonth() + 1;
+    const ano = new Date().getFullYear();
+    const lancamentos = FaciliteStorage.get('lancamentos') || [];
+
+    ativas.forEach(s => {
+      const jaExiste = lancamentos.some(l =>
+        l.descricao === s.nome &&
+        l.categoria === 'Assinaturas' &&
+        l.mes === mes &&
+        l.ano === ano
+      );
+
+      if (!jaExiste) {
+        const dia = Math.min(s.diaVencimento || 5, 28);
+        const dataStr = ano + '-' + String(mes).padStart(2, '0') + '-' + String(dia).padStart(2, '0');
+        const novoLanc = {
+          id: FaciliteStorage.uid('lanc'),
+          descricao: s.nome,
+          valor: -Math.abs(s.valor),
+          categoria: 'Assinaturas',
+          tipo: 'fixo',
+          data: dataStr,
+          mes: mes,
+          ano: ano,
+          formaPagamento: 'debito',
+          recorrente: true,
+          diaVencimento: s.diaVencimento || 5,
+          status: 'pendente',
+        };
+        FaciliteStorage.addLancamento(novoLanc);
+        if (window.FaciliteSync && FaciliteSync.ready) {
+          FaciliteSync.adicionarLancamento(novoLanc);
+        }
+        console.log('[Assinaturas] Lançamento criado para', s.nome, mes + '/' + ano);
+      }
+    });
+  },
+
   render() {
     const subs = FaciliteStorage.get('assinaturas') || [];
     const ativas = subs.filter(s => s.ativa);
@@ -255,7 +298,10 @@ const AssinaturasPage = {
 };
 
 FaciliteState.on('page-loaded', ({ page }) => {
-  if (page === 'assinaturas') AssinaturasPage.init();
+  if (page === 'assinaturas') {
+    AssinaturasPage.garantirLancamentosMesAtual();
+    AssinaturasPage.init();
+  }
 });
 
 FaciliteState.on('dados-changed', () => {

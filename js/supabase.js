@@ -178,24 +178,31 @@ window.FaciliteSync = {
           }
 
           console.log('[Sync] Dados usuario restaurados');
+          localStorage.setItem('facilite_dados_uid', uid);
 
         } else {
-  var uidLocal = localStorage.getItem('facilite_dados_uid');
-  if (uidLocal && uidLocal !== uid) {
-    console.log('[Sync] Dados locais de outro usuario — limpando...');
-    if (window.FaciliteStorage) FaciliteStorage.reset();
-    localStorage.removeItem('facilite_ids_excluidos');
-  } else if (uidLocal === uid) {
-    console.log('[Sync] Subindo dados locais do usuario...');
-    this.ready = true;
-    await this.salvarDadosUsuario();
-    this.ready = false;
-  } else {
-    console.log('[Sync] Conta nova — iniciando zerada');
-  }
-  localStorage.setItem('facilite_dados_uid', uid);
-}
-```
+          // Servidor sem dados — verificar se dados locais pertencem a este usuário
+          var uidSalvo = localStorage.getItem('facilite_dados_uid');
+
+          if (!uidSalvo) {
+            // Primeiro acesso — conta nova, não subir nada
+            console.log('[Sync] Conta nova — iniciando zerada');
+            localStorage.setItem('facilite_dados_uid', uid);
+          } else if (uidSalvo !== uid) {
+            // Dados locais são de outro usuário — limpar tudo
+            console.log('[Sync] Dados de outro usuario detectados — limpando...');
+            if (window.FaciliteStorage) FaciliteStorage.reset();
+            localStorage.removeItem('facilite_ids_excluidos');
+            localStorage.setItem('facilite_dados_uid', uid);
+          } else {
+            // Dados locais pertencem a este usuário — pode subir
+            console.log('[Sync] Subindo dados locais do usuario...');
+            this.ready = true;
+            await this.salvarDadosUsuario();
+            this.ready = false;
+            localStorage.setItem('facilite_dados_uid', uid);
+          }
+        }
       }
 
       // Atualizar UI após carregar todos os dados

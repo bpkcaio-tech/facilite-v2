@@ -189,6 +189,13 @@ window.FacilitePaywall = {
 
   _aprovado: function() {
     FacilitePlano.ativar(1);
+
+    // Persistir plano premium no Supabase
+    if (window.FaciliteSync) {
+      var sessaoAtualizada = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
+      FaciliteSync.salvarUsuario(sessaoAtualizada);
+    }
+
     this.fechar();
 
     var ok = document.createElement('div');
