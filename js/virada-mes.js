@@ -150,30 +150,6 @@ const ViradaMes = {
       }
     });
 
-    // d) Receita fixa (recorrente) do mês anterior
-    const receitasFixas = lancAnteriores.filter(l => l.valor > 0 && l.recorrente);
-    receitasFixas.forEach(l => {
-      const jaExiste = lancNovos.find(n =>
-        n.descricao === l.descricao && n.valor > 0 && n.recorrente
-      );
-      if (jaExiste) return;
-
-      const dia = l.diaVencimento || 1;
-      const dataStr = `${ano}-${String(mes).padStart(2, '0')}-${String(Math.min(dia, 28)).padStart(2, '0')}`;
-
-      FaciliteStorage.addLancamento({
-        descricao: l.descricao,
-        valor: l.valor,
-        categoria: l.categoria || 'Receita',
-        tipo: 'fixo',
-        data: dataStr,
-        formaPagamento: l.formaPagamento || 'pix',
-        status: 'pendente',
-        recorrente: true,
-        diaVencimento: l.diaVencimento,
-      });
-    });
-
     console.log('[ViradaMes] Lançamentos fixos criados para', mes + '/' + ano);
   },
 
