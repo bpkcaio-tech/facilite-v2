@@ -203,27 +203,27 @@ const PerfilPage = {
 
   // ── Reset ──────────────────────────────────────────
   async resetDados() {
-    if (!confirm('Tem certeza? TODOS os seus dados serão apagados permanentemente:\n\n• Lançamentos\n• Contas bancárias\n• Reservas\n• Assinaturas\n• Relatórios\n• Preferências')) return;
-    if (!confirm('ÚLTIMA CHANCE!\n\nEsta ação é irreversível. Deseja continuar?')) return;
+    if (!confirm('Tem certeza? TODOS os lançamentos, contas, reservas e assinaturas serão apagados permanentemente.')) return;
+    if (!confirm('ÚLTIMA CHANCE! Esta ação é irreversível. Deseja continuar?')) return;
 
     FaciliteNotify && FaciliteNotify.info('Apagando todos os dados...');
 
     var uid = window.FaciliteSync ? FaciliteSync._userId() : null;
+    var SUPA_URL = 'https://ugoozmapozlwtijaveru.supabase.co/rest/v1/';
 
     if (uid) {
       try {
         var h = FaciliteSync._h();
-        var url = SUPABASE_URL + '/rest/v1/';
 
-        await fetch(url + 'lancamentos?user_id=eq.' + uid, { method: 'DELETE', headers: h });
-        await fetch(url + 'dados_usuario?user_id=eq.' + uid, { method: 'DELETE', headers: h });
-        await fetch(url + 'receitas?user_id=eq.' + uid, { method: 'DELETE', headers: h });
+        // Apagar dados do Supabase
+        await fetch(SUPA_URL + 'lancamentos?user_id=eq.' + uid, { method: 'DELETE', headers: h });
+        await fetch(SUPA_URL + 'dados_usuario?user_id=eq.' + uid, { method: 'DELETE', headers: h });
+        await fetch(SUPA_URL + 'receitas?user_id=eq.' + uid, { method: 'DELETE', headers: h });
 
-        await fetch(url + 'controle_conta?on_conflict=user_id', {
+        // Gravar timestamp de reset para outros dispositivos zerarem também
+        await fetch(SUPA_URL + 'controle_conta?on_conflict=user_id', {
           method: 'POST',
-          headers: Object.assign({}, h, {
-            'Prefer': 'resolution=merge-duplicates,return=representation'
-          }),
+          headers: Object.assign({}, h, { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
           body: JSON.stringify({
             user_id: uid,
             reset_em: new Date().toISOString(),
@@ -233,15 +233,32 @@ const PerfilPage = {
 
         console.log('[Reset] Supabase limpo + timestamp gravado');
       } catch(e) {
-        console.warn('[Reset] Erro:', e.message);
+        console.warn('[Reset] Erro Supabase:', e.message);
       }
     }
+
+    // Limpar localStorage mantendo sessão e plano
+    var sessaoAtual = localStorage.getItem('facilite_sessao');
+    var temaAtual = localStorage.getItem('facilite_tema');
 
     FaciliteStorage.reset();
     localStorage.removeItem('facilite_ids_excluidos');
     localStorage.removeItem('facilite_ultimo_acesso');
+    localStorage.removeItem('facilite_dados_ts');
+    localStorage.setItem('facilite_dados_uid', uid || '');
 
-    window.location.href = 'dashboard.html';
+    // Restaurar sessão e tema (não perde login nem plano)
+    if (sessaoAtual) localStorage.setItem('facilite_sessao', sessaoAtual);
+    if (temaAtual) localStorage.setItem('facilite_tema', temaAtual);
+
+    FaciliteNotify && FaciliteNotify.success('Dados resetados com sucesso!');
+
+    // Atualizar UI sem relogar
+    setTimeout(function() {
+      if (typeof FaciliteState !== 'undefined') FaciliteState.refresh();
+      if (typeof window.atualizarCards === 'function') window.atualizarCards();
+      if (window.FaciliteRouter) FaciliteRouter.navigate('dashboard');
+    }, 500);
   },
 
   // ── Sync sidebar + topbar ──────────────────────────

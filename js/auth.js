@@ -360,7 +360,7 @@ window.FaciliteAuth = {
       if (window.FaciliteSync) {
         FaciliteSync.salvarUsuario(sessao);
 
-        // Verificar plano premium no Supabase
+        // Restaurar plano premium do Supabase
         setTimeout(async function() {
           try {
             var uid = sessao.id;
@@ -373,14 +373,13 @@ window.FaciliteAuth = {
               var dados = await r.json();
               if (Array.isArray(dados) && dados.length > 0) {
                 var u = dados[0];
-                if (u.plano === 'pago' || u.plano === 'pessoal' || u.plano === 'corporativo') {
-                  // Restaurar plano premium na sessão local
+                var planoValido = u.plano === 'pago' || u.plano === 'pessoal' || u.plano === 'corporativo';
+                if (planoValido) {
                   var sessaoAtual = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
                   sessaoAtual.plano = u.plano;
                   if (u.plano_expira) sessaoAtual.planoExpira = u.plano_expira;
                   localStorage.setItem('facilite_sessao', JSON.stringify(sessaoAtual));
                   console.log('[Auth] Plano premium restaurado:', u.plano);
-                  // Disparar evento para atualizar UI
                   window.dispatchEvent(new CustomEvent('facilite:plano-ativado'));
                 }
               }
@@ -388,7 +387,7 @@ window.FaciliteAuth = {
           } catch(e) {
             console.warn('[Auth] Erro ao verificar plano:', e.message);
           }
-        }, 1000);
+        }, 1500);
 
         setTimeout(function() {
           FaciliteSync.carregarTudo(true);

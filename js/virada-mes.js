@@ -67,17 +67,23 @@ const ViradaMes = {
       const dia = l.diaVencimento || new Date(l.data).getDate() || 1;
       const dataStr = `${ano}-${String(mes).padStart(2, '0')}-${String(Math.min(dia, 28)).padStart(2, '0')}`;
 
-      FaciliteStorage.addLancamento({
+      const lancCriado = FaciliteStorage.addLancamento({
         descricao: l.descricao,
         valor: l.valor,
         categoria: l.categoria,
         tipo: 'fixo',
         data: dataStr,
+        mes: mes,
+        ano: ano,
         formaPagamento: l.formaPagamento || 'pix',
         status: 'pendente',
         recorrente: true,
         diaVencimento: l.diaVencimento,
       });
+
+      if (window.FaciliteSync && lancCriado) {
+        FaciliteSync.adicionarLancamento(lancCriado);
+      }
     });
 
     // b) Parcelamentos em andamento
@@ -119,17 +125,29 @@ const ViradaMes = {
       const dia = a.diaVencimento || 1;
       const dataStr = `${ano}-${String(mes).padStart(2, '0')}-${String(Math.min(dia, 28)).padStart(2, '0')}`;
 
-      FaciliteStorage.addLancamento({
+      const novoLanc = {
+        id: FaciliteStorage.uid('lanc'),
         descricao: a.nome,
         valor: -Math.abs(a.valor),
         categoria: 'Assinaturas',
         tipo: 'fixo',
         data: dataStr,
+        mes: mes,
+        ano: ano,
         formaPagamento: 'debito',
         status: 'pendente',
         recorrente: true,
         diaVencimento: dia,
-      });
+      };
+
+      FaciliteStorage.addLancamento(novoLanc);
+
+      // Sincronizar com Supabase
+      if (window.FaciliteSync) {
+        FaciliteSync.adicionarLancamento(novoLanc).then(function(ok) {
+          if (ok) console.log('[ViradaMes] Assinatura sincronizada:', a.nome);
+        });
+      }
     });
 
     // d) Receita fixa (recorrente) do mês anterior

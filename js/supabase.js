@@ -72,9 +72,13 @@ window.FaciliteSync = {
           var ultimoAcesso = parseInt(localStorage.getItem('facilite_ultimo_acesso') || '0');
 
           if (resetEm > ultimoAcesso) {
-            console.log('[Sync] Reset detectado em outro dispositivo — limpando localStorage...');
+            console.log('[Sync] Reset detectado em outro dispositivo — limpando...');
+            var sessaoSalva = localStorage.getItem('facilite_sessao');
+            var temaSalvo = localStorage.getItem('facilite_tema');
             if (window.FaciliteStorage) FaciliteStorage.reset();
             localStorage.removeItem('facilite_ids_excluidos');
+            if (sessaoSalva) localStorage.setItem('facilite_sessao', sessaoSalva);
+            if (temaSalvo) localStorage.setItem('facilite_tema', temaSalvo);
             resetRemotoDetectado = true;
           }
         }
