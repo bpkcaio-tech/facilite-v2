@@ -360,34 +360,26 @@ window.FaciliteAuth = {
       if (window.FaciliteSync) {
         FaciliteSync.salvarUsuario(sessao);
 
-        // Restaurar plano premium do Supabase
+        // Verificar plano premium existente no Supabase
         setTimeout(async function() {
           try {
-            var uid = sessao.id;
-            var h = FaciliteSync._h();
             var r = await fetch(
-              'https://ugoozmapozlwtijaveru.supabase.co/rest/v1/usuarios?id=eq.' + uid,
-              { headers: h }
+              'https://ugoozmapozlwtijaveru.supabase.co/rest/v1/usuarios?id=eq.' + sessao.id,
+              { headers: FaciliteSync._h() }
             );
             if (r.ok) {
-              var dados = await r.json();
-              if (Array.isArray(dados) && dados.length > 0) {
-                var u = dados[0];
-                var planoValido = u.plano === 'pago' || u.plano === 'pessoal' || u.plano === 'corporativo';
-                if (planoValido) {
-                  var sessaoAtual = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
-                  sessaoAtual.plano = u.plano;
-                  if (u.plano_expira) sessaoAtual.planoExpira = u.plano_expira;
-                  localStorage.setItem('facilite_sessao', JSON.stringify(sessaoAtual));
-                  console.log('[Auth] Plano premium restaurado:', u.plano);
-                  window.dispatchEvent(new CustomEvent('facilite:plano-ativado'));
-                }
+              var arr = await r.json();
+              if (arr.length > 0 && (arr[0].plano === 'pago' || arr[0].plano === 'pessoal' || arr[0].plano === 'corporativo')) {
+                var s = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
+                s.plano = arr[0].plano;
+                if (arr[0].plano_expira) s.planoExpira = arr[0].plano_expira;
+                localStorage.setItem('facilite_sessao', JSON.stringify(s));
+                window.dispatchEvent(new CustomEvent('facilite:plano-ativado'));
+                console.log('[Auth] Plano premium restaurado:', arr[0].plano);
               }
             }
-          } catch(e) {
-            console.warn('[Auth] Erro ao verificar plano:', e.message);
-          }
-        }, 1500);
+          } catch(e) { console.warn('[Auth] Erro verificar plano:', e); }
+        }, 1000);
 
         setTimeout(function() {
           FaciliteSync.carregarTudo(true);

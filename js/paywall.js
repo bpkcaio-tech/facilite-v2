@@ -188,15 +188,21 @@ window.FacilitePaywall = {
   },
 
   _aprovado: function() {
+    var self = this;
     FacilitePlano.ativar(1);
 
-    // Persistir plano premium no Supabase
-    if (window.FaciliteSync) {
-      var sessaoAtualizada = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
-      FaciliteSync.salvarUsuario(sessaoAtualizada);
-    }
+    // Aguardar FacilitePlano.ativar atualizar o localStorage antes de salvar no Supabase
+    setTimeout(function() {
+      if (window.FaciliteSync) {
+        var sessaoAtualizada = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
+        console.log('[Paywall] Salvando plano no Supabase:', sessaoAtualizada.plano);
+        FaciliteSync.salvarUsuario(sessaoAtualizada).then(function() {
+          console.log('[Paywall] Plano premium salvo no Supabase com sucesso');
+        });
+      }
+    }, 500);
 
-    this.fechar();
+    self.fechar();
 
     var ok = document.createElement('div');
     ok.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:999999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px';
