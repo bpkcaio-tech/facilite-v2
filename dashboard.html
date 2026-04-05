@@ -405,6 +405,17 @@
 <!-- Chatbot desativado -->
 <!-- <script src="chatbot.js"></script> -->
 
+<!-- Sincronizar plano premium do Supabase ANTES de verificar acesso -->
+<script>
+  (function sincPlano() {
+    if (window.FacilitePlano && window.FacilitePlano.sincronizarPlano) {
+      FacilitePlano.sincronizarPlano();
+    } else {
+      setTimeout(sincPlano, 200);
+    }
+  })();
+</script>
+
 <!-- Sync automático -->
 <script>
   // Boot: aguarda usuário logado e inicia sync

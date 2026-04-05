@@ -3,10 +3,10 @@
 // ═══════════════════════════════════════════════════
 window.FacilitePlano = {
 
+  // Lê plano do localStorage (síncrono — usado em verificações rápidas)
   ehPago: function() {
     try {
       var s = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
-      // Admins sempre têm acesso total
       if (s.admin === true) return true;
       if (s.plano === 'pago' || s.plano === 'pessoal' || s.plano === 'corporativo') {
         if (s.planoExpira && new Date(s.planoExpira) < new Date()) {
@@ -20,8 +20,48 @@ window.FacilitePlano = {
     } catch(e) { return false; }
   },
 
-  // Alias para compatibilidade com código existente
   isPago: function() { return this.ehPago(); },
+
+  // Verifica plano no Supabase e atualiza localStorage (assíncrono)
+  sincronizarPlano: async function() {
+    try {
+      var s = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
+      if (!s.id) return;
+      if (s.admin === true) return;
+
+      var h = {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnb296bWFwb3psd3RpamF2ZXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MjIzMzgsImV4cCI6MjA5MDM5ODMzOH0.BZtq3wxBMIOhJ3iAqgPxN96PNxyKAj9R73_LvC25cek',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnb296bWFwb3psd3RpamF2ZXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MjIzMzgsImV4cCI6MjA5MDM5ODMzOH0.BZtq3wxBMIOhJ3iAqgPxN96PNxyKAj9R73_LvC25cek'
+      };
+
+      var r = await fetch(
+        'https://ugoozmapozlwtijaveru.supabase.co/rest/v1/usuarios?id=eq.' + s.id,
+        { headers: h }
+      );
+
+      if (!r.ok) return;
+      var arr = await r.json();
+      if (!arr || arr.length === 0) return;
+
+      var usuario = arr[0];
+      var planoPago = usuario.plano === 'pago' || usuario.plano === 'pessoal' || usuario.plano === 'corporativo';
+
+      if (planoPago) {
+        s.plano = usuario.plano;
+        if (usuario.plano_expira) s.planoExpira = usuario.plano_expira;
+        localStorage.setItem('facilite_sessao', JSON.stringify(s));
+        console.log('[Plano] Premium restaurado do Supabase:', usuario.plano);
+        window.dispatchEvent(new CustomEvent('facilite:plano-ativado'));
+
+        // Remover banners de upgrade se existirem
+        var banner = document.getElementById('banner-upgrade');
+        if (banner) banner.remove();
+        document.querySelectorAll('.upgrade-notice').forEach(function(el) { el.remove(); });
+      }
+    } catch(e) {
+      console.warn('[Plano] Erro ao sincronizar:', e.message);
+    }
+  },
 
   ativar: function(meses) {
     meses = meses || 1;
@@ -34,11 +74,43 @@ window.FacilitePlano = {
       s.planoAtivadoEm = new Date().toISOString();
       localStorage.setItem('facilite_sessao', JSON.stringify(s));
       window.dispatchEvent(new CustomEvent('facilite:plano-ativado'));
+
+      // Salvar no Supabase imediatamente
+      this._salvarNoSupabase(s);
       return true;
     } catch(e) { return false; }
   },
 
-  // Alias
+  _salvarNoSupabase: async function(sessao) {
+    try {
+      var h = {
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnb296bWFwb3psd3RpamF2ZXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MjIzMzgsImV4cCI6MjA5MDM5ODMzOH0.BZtq3wxBMIOhJ3iAqgPxN96PNxyKAj9R73_LvC25cek',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnb296bWFwb3psd3RpamF2ZXJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MjIzMzgsImV4cCI6MjA5MDM5ODMzOH0.BZtq3wxBMIOhJ3iAqgPxN96PNxyKAj9R73_LvC25cek',
+        'Prefer': 'resolution=merge-duplicates,return=representation'
+      };
+      await fetch(
+        'https://ugoozmapozlwtijaveru.supabase.co/rest/v1/usuarios?on_conflict=id',
+        {
+          method: 'POST',
+          headers: h,
+          body: JSON.stringify({
+            id: sessao.id,
+            nome: sessao.nome,
+            email: sessao.email,
+            foto: sessao.foto,
+            provider: sessao.provider,
+            plano: sessao.plano,
+            plano_expira: sessao.planoExpira || null
+          })
+        }
+      );
+      console.log('[Plano] Plano salvo no Supabase:', sessao.plano);
+    } catch(e) {
+      console.warn('[Plano] Erro ao salvar no Supabase:', e.message);
+    }
+  },
+
   ativarPlano: function(m) { return this.ativar(m); },
 
   verificar: function(callback, msg) {
@@ -49,6 +121,5 @@ window.FacilitePlano = {
     }
   },
 
-  // Alias
   verificarAcesso: function(cb, msg) { return this.verificar(cb, msg); }
 };
