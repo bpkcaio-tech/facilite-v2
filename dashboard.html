@@ -450,7 +450,6 @@
 <!-- Verificação de plano — roda DEPOIS de todos os scripts -->
 <script>
 (function() {
-  // Verificar direto no localStorage — não depende de nenhum módulo
   function ehPago() {
     try {
       var s = JSON.parse(localStorage.getItem('facilite_sessao') || '{}');
@@ -463,52 +462,73 @@
     } catch(e) { return false; }
   }
 
-  if (ehPago()) return; // usuário pago — nada a fazer
+  var obs;
 
-  // === USUÁRIO GRATUITO ===
+  function injetarBanner() {
+    if (ehPago()) return;
 
-  // 1) Banner fixo no topo
-  var banner = document.createElement('div');
-  banner.id = 'banner-upgrade';
-  banner.style.cssText = 'position:relative;width:100%;z-index:100';
-  banner.innerHTML = '<div style="background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.06));border-bottom:1px solid rgba(34,197,94,0.25);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;font-family:DM Sans,sans-serif;font-size:13px;flex-wrap:wrap;gap:8px">'
-    + '<span style="color:#F0FDF4">🔒 Plano gratuito — <strong style="color:#22C55E">assine para usar todas as funcionalidades</strong></span>'
-    + '<div style="display:flex;gap:8px;align-items:center">'
-    + '<button onclick="FacilitePaywall.abrir()" style="padding:8px 20px;background:#22C55E;border:none;border-radius:8px;color:#000;font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer">Assinar R$ 29,90/mês</button>'
-    + '<button onclick="this.parentElement.parentElement.parentElement.style.display=\'none\'" style="background:none;border:none;color:#6B7280;cursor:pointer;font-size:18px;padding:4px;line-height:1">&times;</button>'
-    + '</div></div>';
-  document.body.appendChild(banner);
+    if (window._planoSincronizado) {
+      if (ehPago()) return;
+    } else {
+      var tentativas = 0;
+      var check = setInterval(function() {
+        tentativas++;
+        if (ehPago() || window._planoSincronizado || tentativas >= 15) {
+          clearInterval(check);
+          if (!ehPago()) injetarElementos();
+        }
+      }, 200);
+      return;
+    }
 
-  // 2) Aviso dentro da área principal
-  function injetarAviso() {
-    if (document.querySelector('.upgrade-notice')) return;
+    injetarElementos();
+  }
+
+  function injetarElementos() {
+    if (ehPago()) return;
+
+    // 1) Banner fixo no topo
+    var banner = document.createElement('div');
+    banner.id = 'banner-upgrade';
+    banner.style.cssText = 'position:relative;width:100%;z-index:100';
+    banner.innerHTML = '<div style="background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.06));border-bottom:1px solid rgba(34,197,94,0.25);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;font-family:DM Sans,sans-serif;font-size:13px;flex-wrap:wrap;gap:8px">'
+      + '<span style="color:#F0FDF4">\uD83D\uDD12 Plano gratuito \u2014 <strong style="color:#22C55E">assine para usar todas as funcionalidades</strong></span>'
+      + '<div style="display:flex;gap:8px;align-items:center">'
+      + '<button onclick="FacilitePaywall.abrir()" style="padding:8px 20px;background:#22C55E;border:none;border-radius:8px;color:#000;font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer">Assinar R$ 29,90/m\u00EAs</button>'
+      + '<button onclick="this.parentElement.parentElement.parentElement.style.display=\'none\'" style="background:none;border:none;color:#6B7280;cursor:pointer;font-size:18px;padding:4px;line-height:1">&times;</button>'
+      + '</div></div>';
+    document.body.appendChild(banner);
+
+    // 2) Aviso dentro da área principal
+    function injetarAviso() {
+      if (document.querySelector('.upgrade-notice')) return;
+      var main = document.querySelector('.dashboard');
+      if (!main) return;
+      var aviso = document.createElement('div');
+      aviso.className = 'upgrade-notice';
+      aviso.style.cssText = 'padding:0 0 4px';
+      aviso.innerHTML = '<div style="background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.03));border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
+        + '<div style="display:flex;align-items:center;gap:12px">'
+        + '<span style="font-size:28px">\uD83D\uDD12</span>'
+        + '<div><div style="font-family:Sora,sans-serif;font-size:14px;font-weight:700;color:var(--text-primary,#F0FDF4)">Modo visualiza\u00E7\u00E3o</div>'
+        + '<div style="font-size:13px;color:var(--text-secondary,#6B7280)">Explore a plataforma livremente. Para salvar dados, assine o Premium.</div></div></div>'
+        + '<button onclick="FacilitePaywall.abrir()" style="padding:10px 24px;background:#22C55E;border:none;border-radius:10px;color:#000;font-family:DM Sans,sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">Assinar Premium</button>'
+        + '</div>';
+      main.insertBefore(aviso, main.firstChild);
+    }
+
+    injetarAviso();
     var main = document.querySelector('.dashboard');
-    if (!main) return;
-    var aviso = document.createElement('div');
-    aviso.className = 'upgrade-notice';
-    aviso.style.cssText = 'padding:0 0 4px';
-    aviso.innerHTML = '<div style="background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.03));border:1px solid rgba(34,197,94,0.2);border-radius:14px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'
-      + '<div style="display:flex;align-items:center;gap:12px">'
-      + '<span style="font-size:28px">🔒</span>'
-      + '<div><div style="font-family:Sora,sans-serif;font-size:14px;font-weight:700;color:var(--text-primary,#F0FDF4)">Modo visualização</div>'
-      + '<div style="font-size:13px;color:var(--text-secondary,#6B7280)">Explore a plataforma livremente. Para salvar dados, assine o Premium.</div></div></div>'
-      + '<button onclick="FacilitePaywall.abrir()" style="padding:10px 24px;background:#22C55E;border:none;border-radius:10px;color:#000;font-family:DM Sans,sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">Assinar Premium</button>'
-      + '</div>';
-    main.insertBefore(aviso, main.firstChild);
+    if (main) {
+      obs = new MutationObserver(function() {
+        setTimeout(injetarAviso, 50);
+      });
+      obs.observe(main, { childList: true });
+    }
   }
 
-  // Injetar agora e a cada troca de aba
-  injetarAviso();
-  // Observer para detectar quando o conteúdo da main muda (troca de aba)
-  var main = document.querySelector('.dashboard');
-  if (main) {
-    var obs = new MutationObserver(function() {
-      setTimeout(injetarAviso, 50);
-    });
-    obs.observe(main, { childList: true });
-  }
+  injetarBanner();
 
-  // 3) Escutar ativação do plano para limpar tudo
   window.addEventListener('facilite:plano-ativado', function() {
     var b = document.getElementById('banner-upgrade');
     if (b) b.remove();

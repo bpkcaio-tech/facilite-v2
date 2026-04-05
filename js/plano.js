@@ -58,8 +58,10 @@ window.FacilitePlano = {
         if (banner) banner.remove();
         document.querySelectorAll('.upgrade-notice').forEach(function(el) { el.remove(); });
       }
+      window._planoSincronizado = true;
     } catch(e) {
       console.warn('[Plano] Erro ao sincronizar:', e.message);
+      window._planoSincronizado = true;
     }
   },
 
