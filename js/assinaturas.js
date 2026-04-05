@@ -228,17 +228,43 @@ const AssinaturasPage = {
     FaciliteStorage.set('assinaturas', subs);
     if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
 
-    // Criar lançamento recorrente fixo
-    FaciliteStorage.addLancamento({
-      descricao: nome,
-      valor: -Math.abs(valor),
-      categoria: 'Assinaturas',
-      tipo: 'fixo',
-      formaPagamento: 'debito',
-      recorrente: true,
-      diaVencimento: dia,
-      status: 'pendente',
-    });
+    // Criar lançamentos para os próximos 12 meses
+    const hoje = new Date();
+    for (let i = 0; i < 12; i++) {
+      const dataLanc = new Date(hoje.getFullYear(), hoje.getMonth() + i, Math.min(dia, 28));
+      const mesLanc = dataLanc.getMonth() + 1;
+      const anoLanc = dataLanc.getFullYear();
+      const dataStr = anoLanc + '-' + String(mesLanc).padStart(2,'0') + '-' + String(Math.min(dia,28)).padStart(2,'0');
+
+      // Verificar se já existe lançamento desse mês
+      const lancamentos = FaciliteStorage.get('lancamentos') || [];
+      const jaExiste = lancamentos.some(l =>
+        l.descricao === nome && l.categoria === 'Assinaturas' &&
+        l.mes === mesLanc && l.ano === anoLanc
+      );
+      if (jaExiste) continue;
+
+      const novoLanc = {
+        id: FaciliteStorage.uid('lanc'),
+        descricao: nome,
+        valor: -Math.abs(valor),
+        categoria: 'Assinaturas',
+        tipo: 'fixo',
+        data: dataStr,
+        mes: mesLanc,
+        ano: anoLanc,
+        formaPagamento: 'debito',
+        recorrente: true,
+        diaVencimento: dia,
+        status: 'pendente',
+      };
+
+      FaciliteStorage.addLancamento(novoLanc);
+
+      if (window.FaciliteSync && FaciliteSync.ready) {
+        FaciliteSync.adicionarLancamento(novoLanc);
+      }
+    }
 
     this.fecharModal();
     this.render();
@@ -284,6 +310,15 @@ const AssinaturasPage = {
     // Remover lançamentos recorrentes dessa assinatura
     if (sub) {
       const lancamentos = FaciliteStorage.get('lancamentos') || [];
+
+      // Excluir lançamentos futuros do Supabase
+      if (window.FaciliteSync) {
+        const lancFuturos = lancamentos.filter(l =>
+          l.descricao === sub.nome && l.categoria === 'Assinaturas' && l.recorrente
+        );
+        lancFuturos.forEach(l => FaciliteSync.excluirLancamento(l.id));
+      }
+
       FaciliteStorage.set('lancamentos', lancamentos.filter(l =>
         !(l.descricao === sub.nome && l.categoria === 'Assinaturas' && l.recorrente)
       ));
