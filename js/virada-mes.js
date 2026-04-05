@@ -17,30 +17,73 @@ const ViradaMes = {
 
     const ultimoProcessado = FaciliteStorage.get('ultimoMesProcessado');
 
-    // Se nunca processou, marcar como processado e sair (primeiro acesso)
+    // Primeiro acesso — garantir lançamentos do mês atual
     if (!ultimoProcessado) {
       FaciliteStorage.set('ultimoMesProcessado', chave);
+      // Garantir assinaturas do mês atual mesmo no primeiro acesso
+      this._garantirAssinaturasMesAtual(mesAtual, anoAtual);
       return;
     }
 
-    // Se já processou este mês, nada a fazer
-    if (ultimoProcessado === chave) return;
+    // Já processou este mês — apenas garantir assinaturas (caso venham de outro dispositivo)
+    if (ultimoProcessado === chave) {
+      this._garantirAssinaturasMesAtual(mesAtual, anoAtual);
+      return;
+    }
 
-    // Mês virou! Processar
-    console.log('[ViradaMes] Novo mês detectado:', chave, '(anterior:', ultimoProcessado, ')');
-
-    // Descobrir mês anterior
+    // Mês virou — processar normalmente
+    console.log('[ViradaMes] Novo mês detectado:', chave);
     const [mesAnt, anoAnt] = ultimoProcessado.split('-').map(Number);
 
     this._salvarRelatorio(mesAnt, anoAnt);
     this._criarLancamentosFixos(mesAtual, anoAtual, mesAnt, anoAnt);
     this._notificarVirada(mesAtual, anoAtual);
 
-    // Marcar como processado
     FaciliteStorage.set('ultimoMesProcessado', chave);
-
-    // Atualizar dashboard
     setTimeout(() => FaciliteState.refresh(), 300);
+  },
+
+  // Garante que assinaturas ativas têm lançamento no mês atual
+  _garantirAssinaturasMesAtual(mes, ano) {
+    const assinaturas = FaciliteStorage.get('assinaturas') || [];
+    const ativas = assinaturas.filter(a => a.ativa);
+    if (ativas.length === 0) return;
+
+    const lancNovos = FaciliteStorage.getLancamentosMes(mes, ano);
+
+    ativas.forEach(a => {
+      const jaExiste = lancNovos.find(n =>
+        n.descricao === a.nome && n.categoria === 'Assinaturas' &&
+        n.mes === mes && n.ano === ano
+      );
+      if (jaExiste) return;
+
+      const dia = a.diaVencimento || 1;
+      const dataStr = `${ano}-${String(mes).padStart(2,'0')}-${String(Math.min(dia,28)).padStart(2,'0')}`;
+
+      const novoLanc = {
+        id: FaciliteStorage.uid('lanc'),
+        descricao: a.nome,
+        valor: -Math.abs(a.valor),
+        categoria: 'Assinaturas',
+        tipo: 'fixo',
+        data: dataStr,
+        mes: mes,
+        ano: ano,
+        formaPagamento: 'debito',
+        status: 'pendente',
+        recorrente: true,
+        diaVencimento: dia,
+      };
+
+      FaciliteStorage.addLancamento(novoLanc);
+
+      if (window.FaciliteSync && FaciliteSync.ready) {
+        FaciliteSync.adicionarLancamento(novoLanc).then(function(ok) {
+          if (ok) console.log('[ViradaMes] Assinatura garantida:', a.nome, mes + '/' + ano);
+        });
+      }
+    });
   },
 
   // ── 1. Salvar relatório do mês anterior ────────────
