@@ -316,10 +316,25 @@ const LancamentosPage = {
     const todos = FaciliteStorage.get('lancamentos') || [];
     const l = todos.find(x => x.id === id);
     if (!l) return;
-    l.status = l.status === 'pendente' ? 'pago' : 'pendente';
+    var novoStatus = l.status === 'pendente' ? 'pago' : 'pendente';
+    l.status = novoStatus;
     FaciliteStorage.set('lancamentos', todos);
+
+    // Se é um lançamento de reserva que foi marcado como pago, atualizar r.atual
+    if (l.tipoLanc === 'reserva' && novoStatus === 'pago') {
+      var reservas = FaciliteStorage.get('reservas') || [];
+      var reserva = reservas.find(function(r) { return r.id === l.reservaId; });
+      if (reserva) {
+        reserva.atual = (reserva.atual || 0) + Math.abs(l.valor);
+        FaciliteStorage.set('reservas', reservas);
+        if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
+        if (window.ReservasPage) ReservasPage.render();
+        console.log('[Reserva] Valor atualizado ao marcar pago:', reserva.nome, reserva.atual);
+      }
+    }
+
     this.render();
-    FaciliteNotify.success(l.status === 'pago' ? 'Marcado como pago!' : 'Marcado como pendente.');
+    FaciliteNotify.success(novoStatus === 'pago' ? 'Marcado como pago!' : 'Marcado como pendente.');
   },
 
   // ── Modal ──────────────────────────────────────────
@@ -863,7 +878,20 @@ const LancamentosPage = {
       const reservas = FaciliteStorage.get('reservas') || [];
       const r = reservas.find(x => x.id === reservaId);
       if (r) {
-        r.atual = (r.atual || 0) + Math.abs(valorRaw);
+        // Só atualizar r.atual se o lançamento for do mês atual ou passado
+        var dataLanc = new Date(data + 'T12:00:00');
+        var mesLanc = dataLanc.getMonth() + 1;
+        var anoLanc = dataLanc.getFullYear();
+        var hoje = new Date();
+        var mesHoje = hoje.getMonth() + 1;
+        var anoHoje = hoje.getFullYear();
+
+        var eFuturo = anoLanc > anoHoje || (anoLanc === anoHoje && mesLanc > mesHoje);
+
+        if (!eFuturo) {
+          r.atual = (r.atual || 0) + Math.abs(valorRaw);
+        }
+        // Se for futuro, só cria o lançamento como pendente — não soma na reserva ainda
         FaciliteStorage.set('reservas', reservas);
         const atingiu = r.atual >= r.meta;
         if (atingiu) {
