@@ -35,15 +35,28 @@ window.FaciliteSync = {
     if (this._refreshTimer) clearTimeout(this._refreshTimer);
     this._refreshTimer = setTimeout(function() {
       var scrollY = window.scrollY || 0;
+
+      // Atualizar cards do dashboard sem re-renderizar tudo
       if (typeof window.atualizarCards === 'function') window.atualizarCards();
-      if (typeof FaciliteState !== 'undefined') FaciliteState.refresh();
+
+      // Atualizar lançamentos SEM apagar e recriar — apenas se já estiver na página
       if (
         typeof LancamentosPage !== 'undefined' &&
         window.FaciliteRouter &&
         FaciliteRouter.currentPage === 'lancamentos'
-      ) LancamentosPage.render();
+      ) {
+        // Pequeno delay para garantir que localStorage foi atualizado
+        setTimeout(function() {
+          LancamentosPage.render();
+          requestAnimationFrame(function() { window.scrollTo(0, scrollY); });
+        }, 50);
+        return;
+      }
+
+      // Outras páginas
+      if (typeof FaciliteState !== 'undefined') FaciliteState.refresh();
       requestAnimationFrame(function() { window.scrollTo(0, scrollY); });
-    }, 200);
+    }, 300);
   },
 
   // ══════════════════════════════════════════════
@@ -53,6 +66,7 @@ window.FaciliteSync = {
     var uid = this._userId();
     if (!uid) return;
     if (this._carregando && !forcar) return;
+    if (this._operacaoEmAndamento) return;
     this._carregando = true;
     this.ready = false;
 

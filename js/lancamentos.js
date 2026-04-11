@@ -175,6 +175,9 @@ const LancamentosPage = {
     if (elMes) elMes.textContent = FaciliteState.getMesLabel();
     if (!lista) return;
 
+    // Fade out suave antes de atualizar
+    if (lista) lista.style.opacity = '0.5';
+
     if (filtrados.length === 0) {
       lista.innerHTML = '';
       if (empty) empty.style.display = 'block';
@@ -207,6 +210,12 @@ const LancamentosPage = {
       }
       lista.innerHTML = html;
     }
+
+    // Fade in após atualizar
+    requestAnimationFrame(function() {
+      if (lista) lista.style.transition = 'opacity 0.15s ease';
+      if (lista) lista.style.opacity = '1';
+    });
 
     // Atualizar resumo
     const receitas = todos.filter(l => l.valor > 0).reduce((s, l) => s + l.valor, 0);
