@@ -1,15 +1,21 @@
 {
   "version": 2,
-  "functions": {
-    "api/chat.js": {
-      "memory": 256,
-      "maxDuration": 30
-    },
-    "api/criar-pagamento.js": {
-      "memory": 128
-    },
-    "api/verificar-pagamento.js": {
-      "memory": 128
-    }
-  }
+  "builds": [
+    { "src": "api/chat.js", "use": "@vercel/node" },
+    { "src": "api/criar-pagamento.js", "use": "@vercel/node" },
+    { "src": "api/verificar-pagamento.js", "use": "@vercel/node" },
+    { "src": "api/webhook.js", "use": "@vercel/node" },
+    { "src": "**/*.html", "use": "@vercel/static" },
+    { "src": "**/*.css", "use": "@vercel/static" },
+    { "src": "js/**", "use": "@vercel/static" },
+    { "src": "pages/**", "use": "@vercel/static" },
+    { "src": "css/**", "use": "@vercel/static" },
+    { "src": "*.js", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/chat", "dest": "/api/chat.js" },
+    { "src": "/api/criar-pagamento", "dest": "/api/criar-pagamento.js" },
+    { "src": "/api/verificar-pagamento", "dest": "/api/verificar-pagamento.js" },
+    { "handle": "filesystem" }
+  ]
 }
