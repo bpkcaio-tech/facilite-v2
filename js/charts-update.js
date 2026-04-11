@@ -30,7 +30,6 @@ const ChartsUpdate = {
     const totais = FaciliteStorage.getTotaisMes(mes, ano);
     const saldoTotal = FaciliteStorage.getSaldoTotal();
 
-    const elSaldo      = document.getElementById('valor-saldo-total');
     const elReceita    = document.getElementById('valor-receita-mensal');
     const elDespesa    = document.getElementById('valor-despesas-mensais');
     const elDisponivel = document.getElementById('valor-disponivel');
@@ -53,7 +52,7 @@ const ChartsUpdate = {
     var disponivelReal = receitaExibir - totais.despesas;
     var pctReal = receitaExibir > 0 ? Math.round((totais.despesas / receitaExibir) * 100) : 0;
 
-    if (elSaldo)      this._animarValor(elSaldo, saldoTotal);
+
     if (elReceita)    this._animarValor(elReceita, receitaExibir);
     if (elDespesa)    this._animarValor(elDespesa, totais.despesas, true);
     if (elDisponivel) this._animarValor(elDisponivel, disponivelReal);

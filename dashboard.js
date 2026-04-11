@@ -181,6 +181,9 @@ const DashNav = {
     FaciliteState.setMes(m, a);
     this.javascript_atualizarLabel();
     if (typeof window.atualizarCards === 'function') window.atualizarCards();
+    if (typeof LancamentosPage !== 'undefined' && window.FaciliteRouter && FaciliteRouter.currentPage === 'lancamentos') {
+      LancamentosPage.render();
+    }
   },
 
   mesProximo() {
@@ -190,6 +193,9 @@ const DashNav = {
     FaciliteState.setMes(m, a);
     this.javascript_atualizarLabel();
     if (typeof window.atualizarCards === 'function') window.atualizarCards();
+    if (typeof LancamentosPage !== 'undefined' && window.FaciliteRouter && FaciliteRouter.currentPage === 'lancamentos') {
+      LancamentosPage.render();
+    }
   },
 
   javascript_atualizarLabel() {
