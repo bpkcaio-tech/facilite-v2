@@ -161,6 +161,9 @@ window.FaciliteSync = {
           if (Array.isArray(d.assinaturas)) {
             localStorage.setItem('facilite_assinaturas', JSON.stringify(d.assinaturas));
             console.log('[Sync] Assinaturas: ' + d.assinaturas.length);
+            if (typeof AssinaturasPage !== 'undefined' && window.FaciliteRouter && FaciliteRouter.currentPage === 'assinaturas') {
+              AssinaturasPage.render();
+            }
           }
           if (Array.isArray(d.reservas)) {
             localStorage.setItem('facilite_reservas', JSON.stringify(d.reservas));
