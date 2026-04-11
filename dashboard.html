@@ -12,7 +12,7 @@
   <script src="js/auth-guard.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="dashboard.css" />
-  <link rel="stylesheet" href="css/chatbot.css" />
+
 </head>
 <body>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="fecharSidebar()"></div>
@@ -348,42 +348,6 @@
   </div><!-- /main-wrapper -->
 </div><!-- /app-layout -->
 
-<!-- CHATBOT -->
-<button id="chat-fab" onclick="FaciliteChat.toggle()" title="Assistente financeiro">
-  💬
-</button>
-
-<div id="chat-painel">
-  <div class="chat-header">
-    <div class="chat-header__info">
-      <div class="chat-header__avatar">🤖</div>
-      <div>
-        <div class="chat-header__nome">Assistente Facilite</div>
-        <div class="chat-header__status">● Online</div>
-      </div>
-    </div>
-    <button class="chat-header__fechar" onclick="FaciliteChat.fechar()">✕</button>
-  </div>
-
-  <div id="chat-mensagens"></div>
-
-  <div class="chat-input-area">
-    <textarea
-      id="chat-input"
-      placeholder="Pergunte sobre suas finanças ou registre um gasto..."
-      rows="1"
-      onkeydown="FaciliteChat._keydown(event)"
-      oninput="FaciliteChat._autoResize(this)"
-    ></textarea>
-    <button id="chat-enviar" onclick="FaciliteChat.enviar()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
-        <line x1="22" y1="2" x2="11" y2="13"/>
-        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-      </svg>
-    </button>
-  </div>
-</div>
-
 <!-- Modal edição de receita -->
 <div id="modal-receita" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:99999;align-items:center;justify-content:center">
   <div style="background:#0F1A12;border:1px solid rgba(34,197,94,0.2);border-radius:16px;padding:28px;width:340px;box-shadow:0 24px 64px rgba(0,0,0,0.6),0 0 32px rgba(34,197,94,0.1);font-family:'DM Sans',sans-serif">
@@ -436,7 +400,7 @@
 <script src="js/notif-panel.js"></script>
 <script src="js/virada-mes.js"></script>
 
-<script src="js/chatbot.js"></script>
+
 
 <!-- Sincronizar plano premium do Supabase ANTES de verificar acesso -->
 <script>
