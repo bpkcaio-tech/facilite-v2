@@ -316,24 +316,50 @@ const LancamentosPage = {
     const todos = FaciliteStorage.get('lancamentos') || [];
     const l = todos.find(x => x.id === id);
     if (!l) return;
+
     var novoStatus = l.status === 'pendente' ? 'pago' : 'pendente';
     l.status = novoStatus;
     FaciliteStorage.set('lancamentos', todos);
 
-    // Se é um lançamento de reserva que foi marcado como pago, atualizar r.atual
-    if (l.tipoLanc === 'reserva' && novoStatus === 'pago') {
+    // Salvar status no Supabase
+    if (window.FaciliteSync) {
+      FaciliteSync.editarLancamento(id, { status: novoStatus });
+    }
+
+    // Se é lançamento de reserva marcado como pago → creditar na reserva
+    if (l.categoria === 'Reserva' && novoStatus === 'pago') {
       var reservas = FaciliteStorage.get('reservas') || [];
-      var reserva = reservas.find(function(r) { return r.id === l.reservaId; });
+      // Buscar por reservaId ou por nome da reserva na descrição
+      var reserva = reservas.find(function(r) {
+        return r.id === l.reservaId || l.descricao.includes(r.nome);
+      });
       if (reserva) {
         reserva.atual = (reserva.atual || 0) + Math.abs(l.valor);
         FaciliteStorage.set('reservas', reservas);
         if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
         if (window.ReservasPage) ReservasPage.render();
-        console.log('[Reserva] Valor atualizado ao marcar pago:', reserva.nome, reserva.atual);
+        FaciliteNotify.success('Reserva "' + reserva.nome + '" atualizada: ' + fmtBRL(reserva.atual));
+        console.log('[Reserva] Creditado ao marcar pago:', reserva.nome, reserva.atual);
+        return;
+      }
+    }
+
+    // Se desmarcou pago em lançamento de reserva → debitar da reserva
+    if (l.categoria === 'Reserva' && novoStatus === 'pendente') {
+      var reservas2 = FaciliteStorage.get('reservas') || [];
+      var reserva2 = reservas2.find(function(r) {
+        return r.id === l.reservaId || l.descricao.includes(r.nome);
+      });
+      if (reserva2) {
+        reserva2.atual = Math.max(0, (reserva2.atual || 0) - Math.abs(l.valor));
+        FaciliteStorage.set('reservas', reservas2);
+        if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
+        if (window.ReservasPage) ReservasPage.render();
       }
     }
 
     this.render();
+    FaciliteState.refresh();
     FaciliteNotify.success(novoStatus === 'pago' ? 'Marcado como pago!' : 'Marcado como pendente.');
   },
 
