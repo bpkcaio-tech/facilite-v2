@@ -36,7 +36,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1024,
         system: systemPrompt || 'Você é um assistente financeiro pessoal.',
         messages,
@@ -51,7 +51,10 @@ export default async function handler(req, res) {
       });
     }
 
-    return res.status(200).json(data);
+    return res.status(200).json({
+      texto: data?.content?.[0]?.text || '',
+      content: data?.content
+    });
   } catch (err) {
     console.error('[api/chat] Erro interno:', err.message);
     return res.status(500).json({ error: 'Erro interno ao chamar a API.' });
