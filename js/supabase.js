@@ -47,7 +47,11 @@ window.FaciliteSync = {
       ) {
         // Pequeno delay para garantir que localStorage foi atualizado
         setTimeout(function() {
-          LancamentosPage.render();
+          var hashAtual = JSON.stringify(FaciliteStorage.getLancamentosMes(FaciliteState.mesAtual, FaciliteState.anoAtual)).length;
+          if (LancamentosPage._ultimoHash !== hashAtual) {
+            LancamentosPage._ultimoHash = hashAtual;
+            LancamentosPage.render();
+          }
           requestAnimationFrame(function() { window.scrollTo(0, scrollY); });
         }, 50);
         return;
