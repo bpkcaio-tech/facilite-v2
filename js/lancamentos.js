@@ -389,6 +389,7 @@ const LancamentosPage = {
     const btnDes = document.getElementById('btn-tipo-despesa');
     const btnRec = document.getElementById('btn-tipo-receita');
     const btnRes = document.getElementById('btn-tipo-reserva');
+    const btnAss = document.getElementById('btn-tipo-assinatura');
     const reservaWrap = document.getElementById('lanc-reserva-wrap');
     const descInput = document.getElementById('lanc-descricao');
     const catSelect = document.getElementById('lanc-categoria');
@@ -396,8 +397,14 @@ const LancamentosPage = {
     if (btnDes) btnDes.classList.toggle('toggle-btn--active', tipo === 'despesa');
     if (btnRec) btnRec.classList.toggle('toggle-btn--active', tipo === 'receita');
     if (btnRes) btnRes.classList.toggle('toggle-btn--active', tipo === 'reserva');
+    if (btnAss) btnAss.classList.toggle('toggle-btn--active', tipo === 'assinatura');
 
-    if (tipo === 'reserva') {
+    if (tipo === 'assinatura') {
+      if (reservaWrap) reservaWrap.style.display = 'none';
+      if (descInput) descInput.placeholder = 'Ex: Netflix, Spotify, iCloud...';
+      if (catSelect) catSelect.value = 'Assinaturas';
+      this.setTag('fixo');
+    } else if (tipo === 'reserva') {
       if (reservaWrap) reservaWrap.style.display = 'block';
       this._preencherReservas();
       if (descInput) descInput.placeholder = 'Descrição (ex: Guardar salário)';
@@ -703,6 +710,39 @@ const LancamentosPage = {
       return;
     }
 
+    // Se for assinatura, salvar na lista e criar lançamentos
+    if (this.tipoLanc === 'assinatura') {
+      const subs = FaciliteStorage.get('assinaturas') || [];
+      const mesInicio = FaciliteState.mesAtual;
+      const anoInicio = FaciliteState.anoAtual;
+
+      subs.push({
+        id: FaciliteStorage.uid('s'),
+        nome: descricao,
+        icone: '📱',
+        cor: '#8B5CF6',
+        valor: Math.abs(valorRaw),
+        diaVencimento: new Date(data + 'T12:00:00').getDate(),
+        categoria: 'Assinaturas',
+        ativa: true,
+        mesInicio: mesInicio,
+        anoInicio: anoInicio,
+      });
+      FaciliteStorage.set('assinaturas', subs);
+      if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
+
+      if (window.AssinaturasPage) {
+        AssinaturasPage._criarLancamentosMeses(descricao, Math.abs(valorRaw), new Date(data + 'T12:00:00').getDate(), 12, mesInicio, anoInicio);
+      }
+
+      fecharModalLancamento();
+      FaciliteState.refresh();
+      if (typeof window.atualizarCards === 'function') window.atualizarCards();
+      FaciliteNotify.success('Assinatura "' + descricao + '" adicionada a partir de ' + mesInicio + '/' + anoInicio + '!');
+      this._salvando = false;
+      return;
+    }
+
     // Se for reserva, validar seleção
     const reservaId = this.tipoLanc === 'reserva' ? document.getElementById('lanc-reserva-id')?.value : null;
     if (this.tipoLanc === 'reserva' && !reservaId) {
@@ -711,9 +751,10 @@ const LancamentosPage = {
       return;
     }
 
-    // Reserva = valor negativo (sai do saldo disponível para guardar)
+    // Reserva/Assinatura = valor negativo (sai do saldo disponível)
     const valor = this.tipoLanc === 'despesa' ? -Math.abs(valorRaw)
       : this.tipoLanc === 'reserva' ? -Math.abs(valorRaw)
+      : this.tipoLanc === 'assinatura' ? -Math.abs(valorRaw)
       : Math.abs(valorRaw);
 
     // Memorizar tag da categoria
