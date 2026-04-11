@@ -35,26 +35,23 @@ const AssinaturasPage = {
 
   init() { this.render(); },
 
-  // ── Criar lançamentos para os próximos N meses ─────
-  _criarLancamentosMeses(nome, valor, dia, meses) {
+  // ── Criar lançamentos a partir de um mês/ano específico ──
+  _criarLancamentosMeses(nome, valor, dia, meses, mesInicio, anoInicio) {
     meses = meses || 12;
-    const hoje = new Date();
+    var mesBase = mesInicio || (window.FaciliteState ? FaciliteState.mesAtual : new Date().getMonth() + 1);
+    var anoBase = anoInicio || (window.FaciliteState ? FaciliteState.anoAtual : new Date().getFullYear());
     const criados = [];
 
     for (let i = 0; i < meses; i++) {
-      const dataLanc = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
-      const mesLanc = dataLanc.getMonth() + 1;
-      const anoLanc = dataLanc.getFullYear();
+      var totalMes = (mesBase - 1) + i;
+      var anoLanc = anoBase + Math.floor(totalMes / 12);
+      var mesLanc = (totalMes % 12) + 1;
       const diaReal = Math.min(dia, 28);
       const dataStr = anoLanc + '-' + String(mesLanc).padStart(2, '0') + '-' + String(diaReal).padStart(2, '0');
 
-      // Verificar se já existe
       const todos = FaciliteStorage.get('lancamentos') || [];
       const jaExiste = todos.some(function(l) {
-        return l.descricao === nome &&
-               l.categoria === 'Assinaturas' &&
-               l.mes === mesLanc &&
-               l.ano === anoLanc;
+        return l.descricao === nome && l.categoria === 'Assinaturas' && l.mes === mesLanc && l.ano === anoLanc;
       });
       if (jaExiste) continue;
 
@@ -73,13 +70,8 @@ const AssinaturasPage = {
         status: 'pendente',
       };
 
-      const salvo = FaciliteStorage.addLancamento(novoLanc);
-
-      // Sync Supabase
-      if (window.FaciliteSync) {
-        FaciliteSync.adicionarLancamento(novoLanc);
-      }
-
+      FaciliteStorage.addLancamento(novoLanc);
+      if (window.FaciliteSync) FaciliteSync.adicionarLancamento(novoLanc);
       criados.push(novoLanc);
       console.log('[Assinaturas] Lançamento criado:', nome, mesLanc + '/' + anoLanc);
     }
@@ -87,15 +79,12 @@ const AssinaturasPage = {
     return criados;
   },
 
-  // ── Remover lançamentos futuros de uma assinatura ──
   _removerLancamentosFuturos(nome) {
     const hoje = new Date();
     const mesAtual = hoje.getMonth() + 1;
     const anoAtual = hoje.getFullYear();
-
     const todos = FaciliteStorage.get('lancamentos') || [];
 
-    // Identificar lançamentos futuros desta assinatura (mês atual em diante)
     const paraRemover = todos.filter(function(l) {
       if (!(l.descricao === nome && l.categoria === 'Assinaturas' && l.recorrente)) return false;
       if (l.ano > anoAtual) return true;
@@ -103,31 +92,26 @@ const AssinaturasPage = {
       return false;
     });
 
-    // Remover do localStorage
     const restantes = todos.filter(function(l) {
       return !(l.descricao === nome && l.categoria === 'Assinaturas' && l.recorrente &&
         (l.ano > anoAtual || (l.ano === anoAtual && l.mes >= mesAtual)));
     });
     FaciliteStorage.set('lancamentos', restantes);
 
-    // Remover do Supabase
     if (window.FaciliteSync) {
-      paraRemover.forEach(function(l) {
-        FaciliteSync.excluirLancamento(l.id);
-      });
+      paraRemover.forEach(function(l) { FaciliteSync.excluirLancamento(l.id); });
     }
-
-    console.log('[Assinaturas] Removidos', paraRemover.length, 'lançamentos futuros de', nome);
+    console.log('[Assinaturas] Removidos', paraRemover.length, 'lançamentos de', nome);
   },
 
-  // ── Garantir lançamento do mês atual (para sync entre dispositivos) ──
   garantirLancamentosMesAtual() {
     const subs = FaciliteStorage.get('assinaturas') || [];
     const ativas = subs.filter(function(s) { return s.ativa; });
     if (ativas.length === 0) return;
-
     ativas.forEach(function(s) {
-      AssinaturasPage._criarLancamentosMeses(s.nome, s.valor, s.diaVencimento || 5, 12);
+      var mesInicio = s.mesInicio || (new Date().getMonth() + 1);
+      var anoInicio = s.anoInicio || new Date().getFullYear();
+      AssinaturasPage._criarLancamentosMeses(s.nome, s.valor, s.diaVencimento || 5, 12, mesInicio, anoInicio);
     });
   },
 
@@ -163,12 +147,11 @@ const AssinaturasPage = {
           </div>
         </div>
         <div class="sub-card__valor">${fmtBRL(s.valor)}<span style="font-size:12px;font-weight:400;color:#6B7280">/mês</span></div>
-        <div class="sub-card__dia">Vence todo dia ${s.diaVencimento || '—'}</div>
+        <div class="sub-card__dia">Vence todo dia ${s.diaVencimento || '—'} · desde ${s.mesInicio || '?'}/${s.anoInicio || '?'}</div>
       </div>
     `).join('');
   },
 
-  // ── Modal ──────────────────────────────────────────
   abrirModalNova() {
     const modal = document.getElementById('modal-assinatura');
     if (!modal) return;
@@ -198,7 +181,6 @@ const AssinaturasPage = {
     if (!grid) return;
 
     const filtrados = cat === 'todos' ? ASSINATURAS_PRESET : ASSINATURAS_PRESET.filter(p => p.categoria === cat);
-
     grid.innerHTML = filtrados.map((p, i) => `
       <div class="sub-preset-card" onclick="AssinaturasPage.selecionarPreset(${ASSINATURAS_PRESET.indexOf(p)})">
         <span class="sub-preset-card__emoji">${p.emoji}</span>
@@ -265,30 +247,31 @@ const AssinaturasPage = {
     }
 
     const subs = FaciliteStorage.get('assinaturas') || [];
-
     if (subs.some(s => s.nome === nome && s.ativa)) {
       FaciliteNotify.warning(`${nome} já está nas suas assinaturas.`);
       return;
     }
 
-    // Salvar assinatura
+    // Usar o mês que o usuário está visualizando no dashboard
+    const mesInicio = window.FaciliteState ? FaciliteState.mesAtual : new Date().getMonth() + 1;
+    const anoInicio = window.FaciliteState ? FaciliteState.anoAtual : new Date().getFullYear();
+
     subs.push({
       id: FaciliteStorage.uid('s'),
       nome, icone, cor, valor,
       diaVencimento: dia, categoria, ativa: true,
+      mesInicio, anoInicio,
     });
     FaciliteStorage.set('assinaturas', subs);
-
-    // Sync assinaturas no Supabase
     if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
 
-    // Criar lançamentos para os próximos 12 meses e sincronizar com Supabase
-    this._criarLancamentosMeses(nome, valor, dia, 12);
+    // Criar lançamentos a partir do mês selecionado
+    this._criarLancamentosMeses(nome, valor, dia, 12, mesInicio, anoInicio);
 
     this.fecharModal();
     this.render();
     FaciliteState.refresh();
-    FaciliteNotify.success(`${nome} adicionada! ${fmtBRL(valor)}/mês — lançamentos criados para os próximos 12 meses.`);
+    FaciliteNotify.success(`${nome} adicionada! Lançamentos criados a partir de ${mesInicio}/${anoInicio}.`);
   },
 
   toggleAtiva(id) {
@@ -301,11 +284,11 @@ const AssinaturasPage = {
     if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
 
     if (!s.ativa) {
-      // Pausar → remover lançamentos futuros
       this._removerLancamentosFuturos(s.nome);
     } else {
-      // Reativar → criar lançamentos para os próximos 12 meses
-      this._criarLancamentosMeses(s.nome, s.valor, s.diaVencimento || 5, 12);
+      const mesInicio = s.mesInicio || (new Date().getMonth() + 1);
+      const anoInicio = s.anoInicio || new Date().getFullYear();
+      this._criarLancamentosMeses(s.nome, s.valor, s.diaVencimento || 5, 12, mesInicio, anoInicio);
     }
 
     this.render();
@@ -317,12 +300,7 @@ const AssinaturasPage = {
     if (!confirm('Remover esta assinatura? Os lançamentos futuros também serão removidos.')) return;
     const subs = FaciliteStorage.get('assinaturas') || [];
     const sub = subs.find(s => s.id === id);
-
-    if (sub) {
-      // Remover lançamentos futuros do localStorage e Supabase
-      this._removerLancamentosFuturos(sub.nome);
-    }
-
+    if (sub) this._removerLancamentosFuturos(sub.nome);
     FaciliteStorage.set('assinaturas', subs.filter(s => s.id !== id));
     if (window.FaciliteSync) FaciliteSync.salvarDadosUsuario();
     this.render();

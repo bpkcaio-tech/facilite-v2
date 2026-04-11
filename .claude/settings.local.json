@@ -11,7 +11,9 @@
       "Bash(ls \"d:/Planilha Financeira/\"*.html \"d:/Planilha Financeira/\"*.js \"d:/Planilha Financeira/\"*.css)",
       "Read(//d//**)",
       "Bash(find /d -maxdepth 2 -name \"facilite-api\" -type d)",
-      "Read(//c/Users/**)"
+      "Read(//c/Users/**)",
+      "Bash(rm -f js/chatbot.js css/chatbot.css)",
+      "Bash(rmdir css:*)"
     ],
     "additionalDirectories": [
       "d:\\Planilha Financeira"
