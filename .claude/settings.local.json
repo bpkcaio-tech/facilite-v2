@@ -7,7 +7,14 @@
       "Bash(npm install:*)",
       "Bash(npx vite:*)",
       "Bash(taskkill //F //IM node.exe)",
-      "Bash(ls \"d:/Planilha Financeira/js/supabase\"*)"
+      "Bash(ls \"d:/Planilha Financeira/js/supabase\"*)",
+      "Bash(ls \"d:/Planilha Financeira/\"*.html \"d:/Planilha Financeira/\"*.js \"d:/Planilha Financeira/\"*.css)",
+      "Read(//d//**)",
+      "Bash(find /d -maxdepth 2 -name \"facilite-api\" -type d)",
+      "Read(//c/Users/**)"
+    ],
+    "additionalDirectories": [
+      "d:\\Planilha Financeira"
     ]
   }
 }
