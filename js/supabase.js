@@ -71,7 +71,7 @@ window.FaciliteSync = {
           var resetEm = new Date(controle[0].reset_em).getTime();
           var ultimoAcesso = parseInt(localStorage.getItem('facilite_ultimo_acesso') || '0');
 
-          if (resetEm > ultimoAcesso) {
+          if (resetEm > ultimoAcesso && ultimoAcesso > 0) {
             console.log('[Sync] Reset detectado em outro dispositivo — limpando...');
             var sessaoSalva = localStorage.getItem('facilite_sessao');
             var temaSalvo = localStorage.getItem('facilite_tema');

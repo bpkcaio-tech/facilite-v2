@@ -735,7 +735,11 @@ const LancamentosPage = {
         AssinaturasPage._criarLancamentosMeses(descricao, Math.abs(valorRaw), new Date(data + 'T12:00:00').getDate(), 12, mesInicio, anoInicio);
       }
 
-      fecharModalLancamento();
+      // Fechar modal — tentar todas as formas possíveis
+      var modal = document.getElementById('modal-lancamento');
+      if (modal) modal.style.display = 'none';
+      if (typeof fecharModal === 'function') fecharModal();
+      if (typeof LancamentosPage.fecharModal === 'function') LancamentosPage.fecharModal();
       FaciliteState.refresh();
       if (typeof window.atualizarCards === 'function') window.atualizarCards();
       FaciliteNotify.success('Assinatura "' + descricao + '" adicionada a partir de ' + mesInicio + '/' + anoInicio + '!');
