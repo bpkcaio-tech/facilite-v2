@@ -58,7 +58,12 @@ html { font-size: 16px; }
 
 body {
   font-family: var(--font-body);
-  background: #0a0a0a;
+  background-color: #091510;
+  background-image:
+    radial-gradient(ellipse 130% 90% at -15% 50%, rgba(15,60,30,0.95) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 70% at 115% 0%, rgba(10,45,22,0.8) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 60% at 50% 115%, rgba(8,35,18,0.6) 0%, transparent 55%);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -81,7 +86,7 @@ button { cursor: pointer; font-family: var(--font-body); }
   top: 0; left: 0;
   width: 72px;
   height: 100vh;
-  background: #111111;
+  background: rgba(4,12,7,0.75); backdrop-filter: blur(24px) saturate(150%); -webkit-backdrop-filter: blur(24px) saturate(150%);
   border-right: 1px solid rgba(255,255,255,0.05);
   display: flex;
   flex-direction: column;
@@ -187,8 +192,10 @@ button { cursor: pointer; font-family: var(--font-body); }
 /* ═══════════════════════════════════ TOPBAR */
 .topbar {
   height: 60px;
-  background: #0a0a0a;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  background: rgba(4,12,7,0.5);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   display: flex;
   align-items: center;
   padding: 0 24px;
@@ -271,17 +278,19 @@ button { cursor: pointer; font-family: var(--font-body); }
 
 /* ═══════════════════════════════════ CARDS */
 .card {
-  background: #1a1a1a;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 16px;
+  background: rgba(8,22,13,0.7);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 18px;
   padding: 20px;
   transition: var(--transition);
 }
 .card:hover {
-  background: #1e1e1e;
-  border-color: rgba(255,255,255,0.10);
+  background: rgba(10,26,16,0.8);
+  border-color: rgba(255,255,255,0.14);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
 }
 .card-saldo {
   border-color: rgba(34,197,94,0.2);
