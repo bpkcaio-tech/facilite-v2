@@ -13,7 +13,8 @@
       "Bash(find /d -maxdepth 2 -name \"facilite-api\" -type d)",
       "Read(//c/Users/**)",
       "Bash(rm -f js/chatbot.js css/chatbot.css)",
-      "Bash(rmdir css:*)"
+      "Bash(rmdir css:*)",
+      "Bash(grep -l \"Sora\\\\|DM Sans\" \"d:/Planilha Financeira\"/*.html \"d:/Planilha Financeira/pages\"/*.html)"
     ],
     "additionalDirectories": [
       "d:\\Planilha Financeira"
