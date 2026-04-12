@@ -37,28 +37,32 @@ window.FaciliteSync = {
     this._refreshTimer = setTimeout(function() {
       var scrollY = window.scrollY || 0;
 
-      // Calcular hash dos dados atuais
-      var dadosAtuais = FaciliteStorage.get('lancamentos') || [];
-      var hashAtual = dadosAtuais.length + '_' + (dadosAtuais[0] ? dadosAtuais[0].id : '');
+      // Hash dos dados do mes atual para evitar re-render desnecessario
+      var mes = window.FaciliteState ? FaciliteState.mesAtual : new Date().getMonth() + 1;
+      var ano = window.FaciliteState ? FaciliteState.anoAtual : new Date().getFullYear();
+      var lancMes = (window.FaciliteStorage ? FaciliteStorage.getLancamentosMes(mes, ano) : null) || [];
+      var hashAtual = lancMes.length + '_' + mes + '_' + ano + '_' + (lancMes[0] ? lancMes[0].id : '');
 
-      // Só atualizar UI se dados realmente mudaram
-      if (self._ultimoHash === hashAtual) return;
+      // So re-render se dados mudaram
+      if (self._ultimoHash === hashAtual) {
+        console.log('[Sync] Dados nao mudaram, pulando re-render');
+        return;
+      }
       self._ultimoHash = hashAtual;
 
-      // Atualizar cards sem animação se já estiver mostrando valores
       if (typeof window.atualizarCards === 'function') window.atualizarCards();
 
-      // Atualizar lançamentos apenas se estiver na página
       if (
         typeof LancamentosPage !== 'undefined' &&
         window.FaciliteRouter &&
         FaciliteRouter.currentPage === 'lancamentos'
       ) {
+        LancamentosPage._forcarRender = true;
         LancamentosPage.render();
       }
 
       requestAnimationFrame(function() { window.scrollTo(0, scrollY); });
-    }, 400);
+    }, 500);
   },
 
   // ══════════════════════════════════════════════
@@ -68,7 +72,6 @@ window.FaciliteSync = {
     var uid = this._userId();
     if (!uid) return;
     if (this._carregando && !forcar) return;
-    if (this._operacaoEmAndamento) return;
     this._carregando = true;
     this.ready = false;
 
@@ -87,7 +90,7 @@ window.FaciliteSync = {
           var resetEm = new Date(controle[0].reset_em).getTime();
           var ultimoAcesso = parseInt(localStorage.getItem('facilite_ultimo_acesso') || '0');
 
-          if (resetEm > ultimoAcesso && ultimoAcesso > 0) {
+          if (resetEm > ultimoAcesso) {
             console.log('[Sync] Reset detectado em outro dispositivo — limpando...');
             var sessaoSalva = localStorage.getItem('facilite_sessao');
             var temaSalvo = localStorage.getItem('facilite_tema');
@@ -177,9 +180,6 @@ window.FaciliteSync = {
           if (Array.isArray(d.assinaturas)) {
             localStorage.setItem('facilite_assinaturas', JSON.stringify(d.assinaturas));
             console.log('[Sync] Assinaturas: ' + d.assinaturas.length);
-            if (typeof AssinaturasPage !== 'undefined' && window.FaciliteRouter && FaciliteRouter.currentPage === 'assinaturas') {
-              AssinaturasPage.render();
-            }
           }
           if (Array.isArray(d.reservas)) {
             localStorage.setItem('facilite_reservas', JSON.stringify(d.reservas));
@@ -204,26 +204,21 @@ window.FaciliteSync = {
           localStorage.setItem('facilite_dados_uid', uid);
 
         } else {
-          // Servidor sem dados
+          // Servidor sem dados — verificar se dados locais pertencem a este usuário
           var uidSalvo = localStorage.getItem('facilite_dados_uid');
 
-          if (resetRemotoDetectado) {
-            // Reset foi feito em outro dispositivo — NÃO subir dados locais
-            // O Supabase foi limpo de propósito
-            console.log('[Sync] Reset remoto confirmado — nao subir dados locais');
-            localStorage.setItem('facilite_dados_uid', uid);
-          } else if (!uidSalvo) {
-            // Primeiro acesso — conta nova
+          if (!uidSalvo) {
+            // Primeiro acesso — conta nova, não subir nada
             console.log('[Sync] Conta nova — iniciando zerada');
             localStorage.setItem('facilite_dados_uid', uid);
           } else if (uidSalvo !== uid) {
-            // Dados de outro usuário — limpar
-            console.log('[Sync] Dados de outro usuario — limpando...');
+            // Dados locais são de outro usuário — limpar tudo
+            console.log('[Sync] Dados de outro usuario detectados — limpando...');
             if (window.FaciliteStorage) FaciliteStorage.reset();
             localStorage.removeItem('facilite_ids_excluidos');
             localStorage.setItem('facilite_dados_uid', uid);
           } else {
-            // Mesmo usuário, Supabase vazio, sem reset — subir dados locais
+            // Dados locais pertencem a este usuário — pode subir
             console.log('[Sync] Subindo dados locais do usuario...');
             this.ready = true;
             await this.salvarDadosUsuario();
@@ -233,10 +228,7 @@ window.FaciliteSync = {
         }
       }
 
-      // Atualizar UI após carregar todos os dados
-      if (typeof window.atualizarCards === 'function') {
-        window.atualizarCards();
-      }
+      // Atualizar UI após carregar todos os dados (via _refreshUI com debounce e hash)
       this._refreshUI();
 
     } catch(e) {
