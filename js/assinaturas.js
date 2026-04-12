@@ -108,10 +108,25 @@ const AssinaturasPage = {
     const subs = FaciliteStorage.get('assinaturas') || [];
     const ativas = subs.filter(function(s) { return s.ativa; });
     if (ativas.length === 0) return;
+
+    const hoje = new Date();
+    const mesHoje = hoje.getMonth() + 1;
+    const anoHoje = hoje.getFullYear();
+
     ativas.forEach(function(s) {
-      var mesInicio = s.mesInicio || (new Date().getMonth() + 1);
-      var anoInicio = s.anoInicio || new Date().getFullYear();
-      AssinaturasPage._criarLancamentosMeses(s.nome, s.valor, s.diaVencimento || 5, 12, mesInicio, anoInicio);
+      // Só usar mesInicio/anoInicio salvos — nunca o mês atual como fallback
+      var mesInicio = s.mesInicio;
+      var anoInicio = s.anoInicio;
+
+      // Se não tem mesInicio salvo, não criar nada (dado corrompido)
+      if (!mesInicio || !anoInicio) return;
+
+      // Só criar lançamentos a partir do mesInicio — nunca antes
+      var inicioNoPasado = anoInicio < anoHoje || (anoInicio === anoHoje && mesInicio < mesHoje);
+      var mesParaCriar = inicioNoPasado ? mesHoje : mesInicio;
+      var anoParaCriar = inicioNoPasado ? anoHoje : anoInicio;
+
+      AssinaturasPage._criarLancamentosMeses(s.nome, s.valor, s.diaVencimento || 5, 12, mesParaCriar, anoParaCriar);
     });
   },
 
