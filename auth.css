@@ -1,15 +1,15 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-root:       #070E0A;
-  --bg-card:       #0F1A12;
+  --bg-root:       #090910;
+  --bg-card:       rgba(255,255,255,0.04);
   --green-primary: #22C55E;
   --green-mid:     #16A34A;
-  --green-subtle:  rgba(34,197,94,0.08);
-  --green-glow:    rgba(34,197,94,0.15);
+  --green-subtle:  rgba(34,197,94,0.10);
+  --green-glow:    rgba(34,197,94,0.25);
   --text-primary:  #F0FDF4;
-  --text-secondary:#6B7280;
-  --border-card:   rgba(255,255,255,0.06);
+  --text-secondary:#9CA3AF;
+  --border-card:   rgba(255,255,255,0.08);
   --border-active: rgba(34,197,94,0.4);
   --font-display:  'Sora', sans-serif;
   --font-body:     'DM Sans', sans-serif;
@@ -19,15 +19,21 @@ body {
   display: flex;
   min-height: 100vh;
   background: var(--bg-root);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(34,197,94,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(34,197,94,0.04) 0%, transparent 50%);
+  background-attachment: fixed;
   font-family: var(--font-body);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── LADO ESQUERDO — BRANDING ────────────────── */
 .auth-branding {
   flex: 1;
-  background: linear-gradient(135deg, #0A1A0D 0%, #070E0A 100%);
+  background: linear-gradient(135deg, rgba(34,197,94,0.06) 0%, rgba(9,9,16,0.8) 100%);
+  backdrop-filter: blur(20px);
   border-right: 1px solid var(--border-card);
   display: flex;
   align-items: center;

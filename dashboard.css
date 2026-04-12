@@ -2,38 +2,53 @@
    FACILITE — DASHBOARD  |  Dark Mode · Green System
    ═══════════════════════════════════════════════════════════ */
 
-/* ── DESIGN TOKENS ── */
+/* ── DESIGN TOKENS — Premium Glassmorphism Dark ── */
 :root {
-  --bg-root:        #070E0A;
-  --bg-sidebar:     #060C08;
-  --bg-card:        #0F1A12;
-  --bg-card-glass:  rgba(15, 26, 18, 0.7);
-  --bg-card-hover:  #132018;
-  --bg-input:       #0D1810;
+  --bg-root:        #090910;
+  --bg-base:        #090910;
+  --bg-sidebar:     rgba(9, 9, 16, 0.95);
+  --bg-card:        rgba(255, 255, 255, 0.04);
+  --bg-card-glass:  rgba(255, 255, 255, 0.04);
+  --bg-card-hover:  rgba(255, 255, 255, 0.09);
+  --bg-elevated:    rgba(255, 255, 255, 0.07);
+  --bg-surface:     rgba(255, 255, 255, 0.04);
+  --bg-hover:       rgba(255, 255, 255, 0.09);
+  --bg-input:       rgba(255, 255, 255, 0.05);
 
   --green-primary:  #22C55E;
   --green-mid:      #16A34A;
   --green-dark:     #14532D;
-  --green-glow:     rgba(34, 197, 94, 0.15);
-  --green-subtle:   rgba(34, 197, 94, 0.08);
+  --green-glow:     rgba(34, 197, 94, 0.25);
+  --green-subtle:   rgba(34, 197, 94, 0.10);
+
+  --accent:         #22C55E;
+  --accent-dim:     rgba(34, 197, 94, 0.15);
+  --accent-glow:    0 0 20px rgba(34, 197, 94, 0.25);
 
   --text-primary:   #F0FDF4;
-  --text-secondary: #6B7280;
-  --text-muted:     #374151;
+  --text-secondary: #9CA3AF;
+  --text-muted:     #4B5563;
 
   --color-positive: #22C55E;
   --color-negative: #EF4444;
   --color-warning:  #F59E0B;
-  --badge-positive-bg: rgba(34, 197, 94, 0.12);
-  --badge-negative-bg: rgba(239, 68, 68, 0.12);
-  --badge-warning-bg:  rgba(245, 158, 11, 0.12);
+  --danger:         #EF4444;
+  --danger-dim:     rgba(239, 68, 68, 0.12);
+  --warn:           #F59E0B;
+  --warn-dim:       rgba(245, 158, 11, 0.12);
+  --badge-positive-bg: rgba(34, 197, 94, 0.15);
+  --badge-negative-bg: rgba(239, 68, 68, 0.15);
+  --badge-warning-bg:  rgba(245, 158, 11, 0.15);
 
-  --border-card:    rgba(255, 255, 255, 0.06);
+  --border-card:    rgba(255, 255, 255, 0.08);
+  --border:         rgba(255, 255, 255, 0.08);
+  --border-strong:  rgba(255, 255, 255, 0.14);
   --border-active:  rgba(34, 197, 94, 0.4);
 
-  --shadow-card:    0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow:    0 0 20px rgba(34, 197, 94, 0.12);
-  --shadow-glow-strong: 0 0 32px rgba(34, 197, 94, 0.2);
+  --shadow-card:    0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-glow:    0 0 20px rgba(34, 197, 94, 0.25);
+  --shadow-glow-strong: 0 0 32px rgba(34, 197, 94, 0.35);
+  --glass-shadow:   0 8px 32px rgba(0, 0, 0, 0.4);
 
   --font-display: 'Sora', sans-serif;
   --font-body:    'DM Sans', sans-serif;
@@ -41,12 +56,64 @@
   --radius-sm:  8px;
   --radius-md:  12px;
   --radius-lg:  16px;
-  --radius-xl:  20px;
+  --radius-xl:  24px;
+
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   --sidebar-width:     240px;
   --sidebar-collapsed: 72px;
   --topbar-height:     64px;
 }
+
+/* ── GLASSMORPHISM LAYER (cascades over existing card styles) ── */
+.card,
+.kpi-card,
+.cc-section,
+.subs-card,
+.bills-card,
+.reserva-card,
+.conta-card,
+.glass-card {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: var(--radius-lg);
+  transition: var(--transition);
+}
+
+.card:hover,
+.kpi-card:hover {
+  background: var(--bg-elevated);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Sidebar premium polish */
+.sidebar {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Primary button glow */
+.btn-primary:hover,
+button.primary:hover {
+  box-shadow: var(--accent-glow);
+  transform: translateY(-1px);
+}
+
+/* Input focus ring */
+input:focus, select:focus, textarea:focus,
+.form-input:focus, .auth-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+  outline: none;
+}
+
+/* Status badges */
+.status-badge.pago,
+.status-badge--pago      { background: rgba(34,197,94,0.15);  color: #22C55E; }
+.status-badge.pendente,
+.status-badge--pendente  { background: rgba(245,158,11,0.15); color: #F59E0B; }
 
 /* ── MODO CLARO ──────────────────────────────────── */
 [data-theme="light"] {
@@ -134,9 +201,12 @@ body {
   color: var(--text-primary);
   background-color: var(--bg-root);
   background-image:
-    radial-gradient(ellipse 600px 400px at 20% 10%, rgba(34,197,94,0.04) 0%, transparent 70%),
-    radial-gradient(ellipse 400px 300px at 80% 80%, rgba(34,197,94,0.03) 0%, transparent 70%);
+    radial-gradient(ellipse at 20% 50%, rgba(34,197,94,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(34,197,94,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(34,197,94,0.03) 0%, transparent 60%);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
 }
 
@@ -145,10 +215,10 @@ ul { list-style: none; }
 button { cursor: pointer; font-family: var(--font-body); }
 
 /* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-root); }
-::-webkit-scrollbar-thumb { background: rgba(34,197,94,0.2); border-radius: 20px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(34,197,94,0.4); }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
 /* ═══════════════════════════════════ APP LAYOUT */
 .app-layout {
@@ -305,9 +375,9 @@ button { cursor: pointer; font-family: var(--font-body); }
   top: 0;
   z-index: 10;
   height: var(--topbar-height);
-  background: rgba(7, 14, 10, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(9, 9, 16, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-card);
   display: flex;
   align-items: center;
@@ -1156,10 +1226,10 @@ button { cursor: pointer; font-family: var(--font-body); }
 .form-input {
   width: 100%;
   box-sizing: border-box;
-  background: #070E0A;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  color: #F0FDF4;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
   font-family: 'DM Sans', sans-serif;
   font-size: 14px;
   padding: 11px 14px;
@@ -1269,8 +1339,9 @@ select.form-input {
   display: none !important;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(6px);
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 9999;
   align-items: center;
   justify-content: center;
@@ -1341,7 +1412,7 @@ select.form-input {
 .lanc-menu-btn:hover{color:#D1D5DB;background:rgba(255,255,255,0.04)}
 
 /* Context menu */
-.context-menu{position:fixed;z-index:100000;background:#0F1A12;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:4px;box-shadow:0 12px 36px rgba(0,0,0,0.5);min-width:180px;max-width:calc(100vw - 16px);max-height:calc(100vh - 20px);overflow-y:auto;overflow-x:hidden;}
+.context-menu{position:fixed;z-index:100000;background:#111118;border:1px solid var(--border-strong);border-radius:12px;padding:4px;box-shadow:0 12px 36px rgba(0,0,0,0.6);backdrop-filter:blur(20px);min-width:180px;max-width:calc(100vw - 16px);max-height:calc(100vh - 20px);overflow-y:auto;overflow-x:hidden;}
 .context-menu-item{display:flex;align-items:center;gap:10px;padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:#D1D5DB;cursor:pointer;border-radius:7px;border:none;background:none;width:100%;transition:background 0.1s}
 .context-menu-item:hover{background:rgba(34,197,94,0.08)}
 .context-menu-sep{height:1px;background:rgba(255,255,255,0.04);margin:3px 8px}
@@ -1369,7 +1440,7 @@ select.form-input {
 .cor-btn--active{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,0.1)}
 
 /* Reservas cards */
-.reserva-card{background:rgba(15,26,18,0.6);border:1px solid rgba(255,255,255,0.04);border-radius:16px;padding:22px;position:relative;overflow:hidden;transition:border-color 0.15s,transform 0.15s}
+.reserva-card{background:var(--glass-bg,rgba(255,255,255,0.04));border:1px solid var(--border-card);border-radius:var(--radius-lg);padding:22px;position:relative;overflow:hidden;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:var(--glass-shadow);transition:var(--transition)}
 .reserva-card:hover{border-color:rgba(255,255,255,0.08);transform:translateY(-2px)}
 .reserva-card__stripe{position:absolute;top:0;left:0;right:0;height:3px}
 .reserva-card__actions{position:absolute;top:14px;right:14px;display:flex;gap:4px;opacity:0;transition:opacity 0.15s}
@@ -1386,7 +1457,7 @@ select.form-input {
 .emoji-opt:hover{background:rgba(34,197,94,0.1)}
 
 /* Contas cards */
-.conta-card{background:var(--card-bg,rgba(15,26,18,0.6));border:1px solid rgba(255,255,255,0.04);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:transform 0.15s,border-color 0.15s}
+.conta-card{background:var(--card-bg,rgba(255,255,255,0.04));border:1px solid var(--border-card);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:var(--glass-shadow);transition:var(--transition)}
 .conta-card:hover{transform:translateY(-2px);border-color:rgba(34,197,94,0.15)}
 .conta-card__stripe{position:absolute;top:0;left:0;right:0;height:4px}
 .conta-card__actions{position:absolute;top:14px;right:14px;display:flex;gap:4px;opacity:0;transition:opacity 0.15s}
@@ -1471,8 +1542,9 @@ html, body {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(6px);
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 9999;
   align-items: flex-start;
   justify-content: center;
@@ -1485,9 +1557,9 @@ html, body {
 }
 
 .modal-box {
-  background: #0F1A12;
-  border: 1px solid rgba(34,197,94,0.2);
-  border-radius: 16px;
+  background: #111118;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
   padding: 24px;
   width: 100%;
   max-width: 420px;
