@@ -33,34 +33,32 @@ window.FaciliteSync = {
   // ── Debounce UI ───────────────────────────────
   _refreshUI: function() {
     if (this._refreshTimer) clearTimeout(this._refreshTimer);
+    var self = this;
     this._refreshTimer = setTimeout(function() {
       var scrollY = window.scrollY || 0;
 
-      // Atualizar cards do dashboard sem re-renderizar tudo
+      // Calcular hash dos dados atuais
+      var dadosAtuais = FaciliteStorage.get('lancamentos') || [];
+      var hashAtual = dadosAtuais.length + '_' + (dadosAtuais[0] ? dadosAtuais[0].id : '');
+
+      // Só atualizar UI se dados realmente mudaram
+      if (self._ultimoHash === hashAtual) return;
+      self._ultimoHash = hashAtual;
+
+      // Atualizar cards sem animação se já estiver mostrando valores
       if (typeof window.atualizarCards === 'function') window.atualizarCards();
 
-      // Atualizar lançamentos SEM apagar e recriar — apenas se já estiver na página
+      // Atualizar lançamentos apenas se estiver na página
       if (
         typeof LancamentosPage !== 'undefined' &&
         window.FaciliteRouter &&
         FaciliteRouter.currentPage === 'lancamentos'
       ) {
-        // Pequeno delay para garantir que localStorage foi atualizado
-        setTimeout(function() {
-          var hashAtual = JSON.stringify(FaciliteStorage.getLancamentosMes(FaciliteState.mesAtual, FaciliteState.anoAtual)).length;
-          if (LancamentosPage._ultimoHash !== hashAtual) {
-            LancamentosPage._ultimoHash = hashAtual;
-            LancamentosPage.render();
-          }
-          requestAnimationFrame(function() { window.scrollTo(0, scrollY); });
-        }, 50);
-        return;
+        LancamentosPage.render();
       }
 
-      // Outras páginas
-      if (typeof FaciliteState !== 'undefined') FaciliteState.refresh();
       requestAnimationFrame(function() { window.scrollTo(0, scrollY); });
-    }, 300);
+    }, 400);
   },
 
   // ══════════════════════════════════════════════

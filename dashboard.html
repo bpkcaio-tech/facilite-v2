@@ -404,19 +404,26 @@
     }
   })();
 
-  // Sync ao voltar para a aba
+  // Sync ao voltar para a aba — só se ficou mais de 60s fora
+  var _ultimaVisibilidade = Date.now();
   document.addEventListener('visibilitychange', function() {
     if (!document.hidden && window.FaciliteSync) {
-      FaciliteSync.carregarTudo(true);
+      var agora = Date.now();
+      if (agora - _ultimaVisibilidade > 60000) {
+        FaciliteSync.carregarTudo(true);
+      }
+      _ultimaVisibilidade = agora;
+    } else {
+      _ultimaVisibilidade = Date.now();
     }
   });
 
-  // Sync a cada 30 segundos
+  // Sync a cada 60 segundos (era 30s)
   setInterval(function() {
     if (window.FaciliteSync && !document.hidden && !FaciliteSync._carregando) {
       FaciliteSync.carregarTudo(true);
     }
-  }, 30000);
+  }, 60000);
 
   // Garantir assinaturas do mês após sync
   setTimeout(function() {

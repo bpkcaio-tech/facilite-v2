@@ -140,13 +140,21 @@ const LancamentosPage = {
     document.querySelectorAll('.lanc-tab').forEach(t => {
       t.classList.toggle('lanc-tab--active', t.dataset.filter === tab);
     });
+    this._forcarRender = true;
     this.render();
   },
 
-  filtrar() { this.render(); },
+  filtrar() { this._forcarRender = true; this.render(); },
 
   // ── Renderizar lista agrupada por data ─────────────
   render() {
+    // Guard: não re-renderizar se dados não mudaram
+    var todos2 = FaciliteStorage.getLancamentosMes(FaciliteState.mesAtual, FaciliteState.anoAtual);
+    var hashNovo = todos2.length + '_' + FaciliteState.mesAtual + '_' + FaciliteState.anoAtual;
+    if (this._hashRender === hashNovo && !this._forcarRender) return;
+    this._hashRender = hashNovo;
+    this._forcarRender = false;
+
     var _scrollY = window.scrollY || window.pageYOffset || 0;
     var listaEl = document.getElementById('lista-lancamentos');
     var listaScroll = listaEl ? listaEl.scrollTop : 0;

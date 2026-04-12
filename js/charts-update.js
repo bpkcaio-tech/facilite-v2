@@ -113,6 +113,12 @@ const ChartsUpdate = {
   _animarValor(el, valorFinal, ehDespesa = false) {
     const textoAtual = el.textContent.replace(/[^\d,]/g, '').replace(',', '.');
     const valorAtual = parseFloat(textoAtual) || 0;
+    // Não animar se valor não mudou
+    if (Math.abs(valorAtual - valorFinal) < 0.01) {
+      el.textContent = fmtBRL(valorFinal);
+      el.style.color = ehDespesa ? '#EF4444' : (valorFinal >= 0 ? '#22C55E' : '#EF4444');
+      return;
+    }
     const duracao = 500;
     const inicio = performance.now();
 

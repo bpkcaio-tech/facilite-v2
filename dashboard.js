@@ -182,6 +182,7 @@ const DashNav = {
     this.javascript_atualizarLabel();
     if (typeof window.atualizarCards === 'function') window.atualizarCards();
     if (typeof LancamentosPage !== 'undefined' && window.FaciliteRouter && FaciliteRouter.currentPage === 'lancamentos') {
+      LancamentosPage._forcarRender = true;
       LancamentosPage.render();
     }
   },
@@ -194,6 +195,7 @@ const DashNav = {
     this.javascript_atualizarLabel();
     if (typeof window.atualizarCards === 'function') window.atualizarCards();
     if (typeof LancamentosPage !== 'undefined' && window.FaciliteRouter && FaciliteRouter.currentPage === 'lancamentos') {
+      LancamentosPage._forcarRender = true;
       LancamentosPage.render();
     }
   },
